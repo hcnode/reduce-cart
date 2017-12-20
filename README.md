@@ -1,14 +1,29 @@
 ## 购物车/订单 isomorphic reducer
 
-基于商品和活动、优惠券等数据的购物车相关业务逻辑处理，可以在javascript的任何环境使用，包括浏览器/h5（react、vue）、服务器（node.js）、app（rn、weex），实现所有端复用一套业务逻辑。
+基于商品和活动、优惠券等数据的购物车相关业务逻辑处理和计算。
+
+## Why
+
+当购物车需求有变化，前端需要改一遍，app端需要改一遍，服务器端也要改一遍，使用这个库可以只需要改一遍，所有端都可以用！
 
 ## 特点
+* 基于函数式编程的愉快的编程体验
 * 基于typescript，可以使用接口的.d.ts类型定义
 * vanilla js，没有依赖第三方库
 * 可以结合任何库使用，比如react、vue、angular
 * 可以使用任何在任何javascript环境，比如browser、node.js、app、h5
 
+## 例子测试
+
+`git clone https://github.com/hcnode/reduce-cart`
+
+`cd reduce-cart/example`
+
+访问`index.html`
+
 ## 使用方法
+
+`npm i reduce-cart`
 
 ```javascript
 import {ActivityPlugin, createReducers, actions, SaleType, CategoryType} from 'reduce-cart'
