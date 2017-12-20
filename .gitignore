@@ -64,3 +64,4 @@ bower_components
 dist
 doc
 .awcache
+package-lock.json
