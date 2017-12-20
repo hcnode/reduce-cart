@@ -11,7 +11,7 @@
 * 基于typescript，可以使用接口的.d.ts类型定义
 * vanilla js，没有依赖第三方库
 * 可以结合任何库使用，比如react、vue、angular
-* 可以使用任何在任何javascript环境，比如browser、node.js、app、h5
+* 可以使用在任何javascript环境，比如browser、node.js、app、h5
 
 ## 例子测试
 
