@@ -2,7 +2,7 @@
   "name": "reduce-cart",
   "version": "0.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "./dist/index.js",
   "scripts": {
     "test": "set NODE_ENV=test&&nyc mocha",
     "doc": "rm -rf ./doc && typedoc --out ./doc --mode modules --excludeNotExported ./index.ts",
@@ -43,6 +43,5 @@
     ],
     "all": true
   },
-  "dependencies": {
-  }
+  "dependencies": {}
 }

@@ -155,10 +155,10 @@ var actions : extActions = {
       saleType
     };
   },
-  choose_sale: (data, saleType) : redux.AnyAction => {
+  choose_sale: (saleId, saleType) : redux.AnyAction => {
     return {
       type: CONST.CHOOSE_SALE,
-      saleId: data,
+      saleId,
       saleType
     };
   }
