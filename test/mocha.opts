@@ -1,0 +1,7 @@
+--timeout 360000
+--require ts-node/register
+--recursive
+
+test/reducer.test.ts
+test/multiactivities.test.ts
+test/redux.test.ts
