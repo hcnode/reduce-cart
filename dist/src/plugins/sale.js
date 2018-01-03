@@ -37,8 +37,11 @@ var CONST = {
  * 活动的action定义
  */
 var actions = {
-    init_sale: (data = [], saleType) => {
-        data = data.map(item => (Object.assign({}, item, { 
+    init_sale: (sales = [], saleType) => {
+        sales = sales.map(item => (Object.assign({}, item, { rule: item.rule || {
+                threshold: -1,
+                amount: 0
+            }, 
             // 不传apply默认是全场优惠
             apply: item.apply || {
                 categoryType: interface_1.CategoryType.ALL,
@@ -48,7 +51,7 @@ var actions = {
             type: item.type || SaleType.THRESHOLD })));
         return {
             type: CONST.INIT_SALE,
-            sales: data,
+            sales,
             saleType
         };
     },
@@ -159,7 +162,7 @@ var calculate = (saleType) => {
                         return Object.assign({}, result, { validItems: [...items] });
                     }
                     else {
-                        var validItems = items.filter(item => (categoryType == interface_1.CategoryType.GOODS ? item.product.id == value : item.category == value));
+                        var validItems = items.filter(item => (categoryType == interface_1.CategoryType.GOODS ? item.goods.id == value : item.category == value));
                         return validItems.length > 0
                             ? Object.assign({}, result, { validItems }) : null;
                     }
@@ -175,10 +178,10 @@ var calculate = (saleType) => {
                         // 仅限某些类目可以使用，TODO：以后可能还有其他限制？
                         var validItems = [];
                         var grossTotalByCategory = items.reduce((total, item) => {
-                            var match = value == (categoryType == interface_1.CategoryType.GOODS ? item.product.id : item.category);
+                            var match = value == (categoryType == interface_1.CategoryType.GOODS ? item.goods.id : item.category);
                             if (match) {
                                 validItems.push(item);
-                                total += item.product.price * item.quantity;
+                                total += item.goods.price * item.quantity;
                             }
                             return total;
                         }, 0);

@@ -66,7 +66,7 @@ class App extends React.Component<Props, State> {
           onClick={e => {
             var itemLen = this.props.items.length + 1;
             var newItem = {
-              product: {
+              goods: {
                 id: itemLen + "",
                 name: "item" + itemLen,
                 price: 100
@@ -94,17 +94,17 @@ class App extends React.Component<Props, State> {
               </tr>
               {this.props.items.map(item => (
                 <tr>
-                  <td>{item.product.name}</td>
+                  <td>{item.goods.name}</td>
                   <td>
                     <input
                       onChange={e => {
                         this.props.updateItem({
                           ...item,
-                          product: { ...item.product, price: parseInt(e.target.value, 10) }
+                          goods: { ...item.goods, price: parseInt(e.target.value, 10) }
                         });
                       }}
                       type="text"
-                      value={item.product.price}
+                      value={item.goods.price}
                       style={{ width: "50px" }}
                     />
                   </td>
@@ -128,13 +128,13 @@ class App extends React.Component<Props, State> {
                       style={{ width: "150px" }}
                     />
                   </td>
-                  <td>{item.quantity * item.product.price}</td>
+                  <td>{item.quantity * item.goods.price}</td>
                 </tr>
               ))}
             </tbody>
           </table>
           总额：{this.props.items.reduce((total, item) => {
-            total += item.quantity * item.product.price;
+            total += item.quantity * item.goods.price;
             return total;
           }, 0)}
         </div>
@@ -277,7 +277,7 @@ class App extends React.Component<Props, State> {
                               </span>
                             ) : null}
                           </td>
-                          <td>{validSale ? validSale.validItems.map(item => item.product.name).join(",") : null}</td>
+                          <td>{validSale ? validSale.validItems.map(item => item.goods.name).join(",") : null}</td>
                           <td>
                             {validSale && validSale.validItems.length > 0 ? (
                               <button

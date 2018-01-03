@@ -78,18 +78,18 @@ var reducerAssert = {
     activity.validSales.map(validSale => validSale.sale.id).should.be.deepEqual(["1", "3", "4"]);
     activity.validSales
       .find(validSale => validSale.sale.id == "3")
-      .validItems.map(item => item.product.id)
+      .validItems.map(item => item.goods.id)
       .should.be.deepEqual(["3"]);
     activity.validSales
       .find(validSale => validSale.sale.id == "4")
-      .validItems.map(item => item.product.id)
+      .validItems.map(item => item.goods.id)
       .should.be.deepEqual(["1", "2"]);
     state.grossTotal.should.be.equal(240);
     state.actualTotal.should.be.equal(230);
     activity.bestSale.sale.id.should.be.equal("1");
     activity.bestSale.actualTotal.should.be.equal(230);
     activity.bestSale.reduceAmount.should.be.equal(10);
-    activity.bestSale.validItems.map(item => item.product.id).should.be.deepEqual(["1", "2", "3"]);
+    activity.bestSale.validItems.map(item => item.goods.id).should.be.deepEqual(["1", "2", "3"]);
     activity.defaultSale.should.deepEqual(activity.bestSale);
   },
   choose_sale : (state, validSales, bestSale) => {
@@ -104,7 +104,7 @@ var reducerAssert = {
       reduceAmount: 5,
       validItems: [
         {
-          product: { id: "3" }
+          goods: { id: "3" }
         }
       ]
     });
@@ -114,7 +114,7 @@ var reducerAssert = {
   add : state => {
     state.should.be.containDeep({
       items: Array.from(new Array(4)).map((_, i) => ({
-        product: { id: i + 1 + "" }
+        goods: { id: i + 1 + "" }
       })),
       activities: [
         {
@@ -125,7 +125,7 @@ var reducerAssert = {
             sale: { id: "5" },
             reduceAmount: 20,
             actualTotal: 320 - 20,
-            validItems: [{ product: { id: "4" } }]
+            validItems: [{ goods: { id: "4" } }]
           },
           chosenSale: {
             sale: { id: "3" }
@@ -142,7 +142,7 @@ var reducerAssert = {
   },
   remove : state => {
     state.should.be.containDeep({
-      items: [{ product: { id: "1" } }, { product: { id: "2" } }, { product: { id: "4" } }],
+      items: [{ goods: { id: "1" } }, { goods: { id: "2" } }, { goods: { id: "4" } }],
       activities: [
         {
           sales: Array.from(new Array(5)).map((_, i) => ({
@@ -152,7 +152,7 @@ var reducerAssert = {
             sale: { id: "5" },
             reduceAmount: 20,
             actualTotal: 240 - 20,
-            validItems: [{ product: { id: "4" } }]
+            validItems: [{ goods: { id: "4" } }]
           },
           chosenSale: undefined,
           actualTotal: 240 - 20
@@ -164,7 +164,7 @@ var reducerAssert = {
   },
   update : state => {
     state.should.be.containDeep({
-      items: [{ product: { id: "1" } }, { product: { id: "2" } }, { product: { id: "4" } }],
+      items: [{ goods: { id: "1" } }, { goods: { id: "2" } }, { goods: { id: "4" } }],
       activities: [
         {
           sales: Array.from(new Array(5)).map((_, i) => ({
@@ -174,7 +174,7 @@ var reducerAssert = {
             sale: { id: "2" },
             reduceAmount: 30,
             actualTotal: 340 - 30,
-            validItems: [{ product: { id: "4" } }]
+            validItems: [{ goods: { id: "4" } }]
           },
           actualTotal: 340 - 30,
           defaultSale: {

@@ -4,7 +4,7 @@ import { Sale, SaleType, CategoryType } from './../..';
 // total: 240
 var items : Item[] = [
     {
-        product : {
+        goods : {
             id : '1',
             name : 'item1',
             price : 30
@@ -13,7 +13,7 @@ var items : Item[] = [
         category : 'category1'
     },
     {
-        product : {
+        goods : {
             id : '2',
             name : 'item2',
             price : 100
@@ -22,7 +22,7 @@ var items : Item[] = [
         category : 'category1'
     },
     {
-        product : {
+        goods : {
             id : '3',
             name : 'item3',
             price : 80

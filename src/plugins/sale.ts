@@ -31,7 +31,7 @@ export interface Sale {
    */
   apply: {
     categoryType: CategoryType;
-    value: string;
+    value: any;
   };
 }
 /**
@@ -138,9 +138,13 @@ export interface extActions extends Actions {
  * 活动的action定义
  */
 var actions : extActions = {
-  init_sale: (data = [], saleType) : redux.AnyAction => {
-    data = data.map(item => ({
+  init_sale: (sales = [], saleType) : redux.AnyAction => {
+    sales = sales.map(item => ({
       ...item,
+      rule : item.rule || {
+        threshold : -1,
+        amount : 0
+      },
       // 不传apply默认是全场优惠
       apply: item.apply || {
         categoryType: CategoryType.ALL,
@@ -151,7 +155,7 @@ var actions : extActions = {
     }));
     return {
       type: CONST.INIT_SALE,
-      sales: data,
+      sales,
       saleType
     };
   },
@@ -279,7 +283,7 @@ var calculate = (saleType) : CartWithSaleFunc => {
               };
             } else {
               var validItems = items.filter(
-                item => (categoryType == CategoryType.GOODS ? item.product.id == value : item.category == value)
+                item => (categoryType == CategoryType.GOODS ? item.goods.id == value : item.category == value)
               );
               return validItems.length > 0
                 ? {
@@ -302,10 +306,10 @@ var calculate = (saleType) : CartWithSaleFunc => {
               // 仅限某些类目可以使用，TODO：以后可能还有其他限制？
               var validItems: Item[] = [];
               var grossTotalByCategory = items.reduce((total, item) => {
-                var match = value == (categoryType == CategoryType.GOODS ? item.product.id : item.category);
+                var match = value == (categoryType == CategoryType.GOODS ? item.goods.id : item.category);
                 if (match) {
                   validItems.push(item);
-                  total += item.product.price * item.quantity;
+                  total += item.goods.price * item.quantity;
                 }
                 return total;
               }, 0);

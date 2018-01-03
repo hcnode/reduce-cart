@@ -55,7 +55,7 @@ describe("redux", () => {
   it("#action: add", () => {
     store.dispatch(
       actions.add({
-        product: {
+        goods: {
           id: "4",
           name: "item4",
           price: 80
@@ -71,7 +71,7 @@ describe("redux", () => {
   it("#action: remove", () => {
     store.dispatch(
       actions.remove({
-        product: {
+        goods: {
           id: "3",
           name: "item3",
           price: 80
@@ -86,7 +86,7 @@ describe("redux", () => {
   it("#action: update", () => {
     store.dispatch(
       actions.update({
-        product: {
+        goods: {
           id: "2",
           name: "item2",
           price: 100

@@ -35,7 +35,7 @@ var state;
 // 初始化商品数据
 state = reducer(state, actions.init_cart([
     {
-        product : {
+        goods : {
             id : '1',
             name : 'item1',
             price : 30
@@ -64,7 +64,7 @@ state = reducer(state, activityPlugin.actions.init_sale({
 // 增加一个商品
 state = reducer(state, actions.add(
     {
-        product : {
+        goods : {
             id : '2',
             name : 'item2',
             price : 100
@@ -115,7 +115,7 @@ interface Item {
   /**
    * 商品信息
    */
-  product: {
+  goods: {
     id: string;
     name: string;
     price: number;

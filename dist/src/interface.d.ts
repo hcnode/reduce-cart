@@ -27,7 +27,7 @@ export interface Item {
     /**
      * 商品信息
      */
-    product: {
+    goods: {
         id: string;
         name: string;
         price: number;
@@ -40,6 +40,10 @@ export interface Item {
      * 所属类目
      */
     category: string;
+    /**
+     * 送的
+     */
+    isBonus?: boolean;
 }
 /**
  * 购物车

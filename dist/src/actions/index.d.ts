@@ -4,33 +4,36 @@ declare function init_cart(data: any): {
     items: any;
 };
 declare function add(item: Item): {
-    product: {
+    goods: {
         id: string;
         name: string;
         price: number;
     };
     quantity: number;
     category: string;
+    isBonus?: boolean;
     type: string;
 };
 declare function remove(item: Item): {
-    product: {
+    goods: {
         id: string;
         name: string;
         price: number;
     };
     quantity: number;
     category: string;
+    isBonus?: boolean;
     type: string;
 };
 declare function update(item: Item): {
-    product: {
+    goods: {
         id: string;
         name: string;
         price: number;
     };
     quantity: number;
     category: string;
+    isBonus?: boolean;
     type: string;
 };
 declare function throwError(code: number): {

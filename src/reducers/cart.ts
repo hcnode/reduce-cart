@@ -18,27 +18,27 @@ export default (
       return { ...state, items: action.items };
     case ActionType.ADD:
     case ActionType.UPDATE:
-      var existItem = state.items.find(item => item.product.id == action.product.id);
+      var existItem = state.items.find(item => item.goods.id == action.goods.id);
       return {
         ...state,
         items: existItem
           ? state.items.map(item => {
-              return item.product.id == action.product.id
+              return item.goods.id == action.goods.id
                 ? {
                     ...item,
-                    product : {...item.product, price : action.product && action.product.price ? action.product.price : item.product.price},
+                    goods : {...item.goods, price : action.goods && action.goods.price ? action.goods.price : item.goods.price},
                     quantity: type == ActionType.UPDATE ? action.quantity : item.quantity + action.quantity,
                     category: action.category ? action.category : item.category
                   }
                 : { ...item };
             })
-          : [...state.items, { product: action.product, quantity: action.quantity, category: action.category }]
+          : [...state.items, { goods: action.goods, quantity: action.quantity, category: action.category }]
       };
     case ActionType.REMOVE:
-      var existItem = state.items.find(item => item.product.id == action.product.id);
+      var existItem = state.items.find(item => item.goods.id == action.goods.id);
       return {
         ...state,
-        items: state.items.filter(item => item.product.id != action.product.id)
+        items: state.items.filter(item => item.goods.id != action.goods.id)
       };
     case ActionType.ERROR:
       return {

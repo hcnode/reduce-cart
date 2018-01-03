@@ -16,8 +16,9 @@ import {
   extActions
 } from "../";
 require("should");
-import * as util from './util'
+import * as util from "./util";
 import { items, sales, vouchers } from "./data/data";
+import BonusPlugin from "../src/plugins/bonus";
 var reducer;
 var activityPlugin;
 var voucherPlugin;
@@ -66,7 +67,7 @@ describe("muti-activities", () => {
     state = reducer(
       state,
       actions.update({
-        product: {
+        goods: {
           id: "2",
           name: "item2",
           price: 100
@@ -104,9 +105,9 @@ describe("muti-activities", () => {
     state.activities[0].validSales.length.should.be.equal(4);
     state.activities[1].validSales.length.should.be.equal(2);
   });
-
+  var shipFreePlugin: SalePlugin<CartWithSaleFunc, extActions>
   it("#plugin", () => {
-    var shipFreePlugin: SalePlugin<CartWithSaleFunc, extActions> = util.shipFreePlugin()
+    shipFreePlugin = util.shipFreePlugin();
 
     reducer = createReducers([activityPlugin, voucherPlugin, shipFreePlugin]);
     state = reducer(
@@ -118,29 +119,31 @@ describe("muti-activities", () => {
               threshold: 200,
               amount: 6
             },
-            type : SaleType.CUSTOM
+            type: SaleType.CUSTOM
           }
         ],
         "shipFree"
       )
     );
-    
+
     state.activities.length.should.be.equal(3);
     state.activities[2].should.be.containDeep({
-      sales: [{
-        rule: {
-          threshold: 200,
-          amount: 6
-        },
-        type : SaleType.CUSTOM
-      }],
+      sales: [
+        {
+          rule: {
+            threshold: 200,
+            amount: 6
+          },
+          type: SaleType.CUSTOM
+        }
+      ],
       defaultSale: null,
-      chosenSale : null,
+      chosenSale: null,
       bestSale: null,
       preTotal: 290,
       actualTotal: 290,
       type: "shipFree"
-    })
+    });
     state = reducer(
       state,
       activityPlugin.actions.init_sale(
@@ -150,7 +153,7 @@ describe("muti-activities", () => {
               threshold: 500,
               amount: 6
             },
-            type : SaleType.CUSTOM
+            type: SaleType.CUSTOM
           }
         ],
         "shipFree"
@@ -159,6 +162,90 @@ describe("muti-activities", () => {
     state.activities[2].should.be.containDeep({
       preTotal: 290,
       actualTotal: 296
-    })
+    });
+  });
+
+  it("#bonus plugin", () => {
+    var bonusPlugin: SalePlugin<CartWithSaleFunc, extActions> = BonusPlugin();
+
+    reducer = createReducers([activityPlugin, voucherPlugin, shipFreePlugin, bonusPlugin]);
+    state = reducer(
+      state,
+      activityPlugin.actions.init_sale(
+        [
+          {
+            apply: {
+              categoryType: CategoryType.GOODS,
+              value: {
+                refItemId: "1",
+                bonusItem: {
+                  goods: {
+                    id: "3",
+                    name: "item3",
+                    price: 80
+                  },
+                  quantity: 1,
+                  category: "category2"
+                }
+              }
+            },
+            type: SaleType.CUSTOM
+          }
+        ],
+        "bonus"
+      )
+    );
+
+    state.activities.length.should.be.equal(4);
+    state.activities[3].should.be.containDeep({
+      sales: [
+        {
+          apply: {
+            categoryType: CategoryType.GOODS,
+            value: {
+              refItemId: "1",
+              bonusItem: {
+                goods: {
+                  id: "3",
+                  name: "item3",
+                  price: 80
+                },
+                quantity: 1,
+                category: "category2"
+              }
+            }
+          },
+          type: SaleType.CUSTOM
+        }
+      ],
+      defaultSale: null,
+      chosenSale: null,
+      bestSale: null,
+      type: "bonus"
+    });
+    state.should.be.containDeep({
+      bonusItems: [
+        {
+          refItem: {
+            goods: {
+              id: "1",
+              name: "item1",
+              price: 30
+            },
+            quantity: 2,
+            category: "category1"
+          },
+          bonusItem: {
+            goods: {
+              id: "3",
+              name: "item3",
+              price: 80
+            },
+            quantity: 1,
+            category: "category2"
+          }
+        }
+      ]
+    });
   });
 });

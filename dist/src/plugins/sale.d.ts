@@ -29,7 +29,7 @@ export interface Sale {
      */
     apply: {
         categoryType: CategoryType;
-        value: string;
+        value: any;
     };
 }
 /**

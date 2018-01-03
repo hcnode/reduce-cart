@@ -48,7 +48,7 @@ describe("reducer", () => {
     state = reducer(
       state,
       actions.add({
-        product: {
+        goods: {
           id: "4",
           name: "item4",
           price: 80
@@ -64,7 +64,7 @@ describe("reducer", () => {
     state = reducer(
       state,
       actions.remove({
-        product: {
+        goods: {
           id: "3",
           name: "item3",
           price: 80
@@ -79,7 +79,7 @@ describe("reducer", () => {
     state = reducer(
       state,
       actions.update({
-        product: {
+        goods: {
           id: "2",
           name: "item2",
           price: 100
@@ -122,7 +122,7 @@ describe("reducer", () => {
       sale: { id: "6" },
       reduceAmount: 9,
       actualTotal: 340 - 9,
-      validItems: [{ product: { id: "1" } }, { product: { id: "2" } }]
+      validItems: [{ goods: { id: "1" } }, { goods: { id: "2" } }]
     });
     state = reducer(
       state,
