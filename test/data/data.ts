@@ -1,5 +1,4 @@
-import { Api } from '../../src/actions/thunk';
-import { Item } from '../../src/interface';
+import { Api, Item } from '../../src/interface';
 import { Sale, SaleType, CategoryType } from './../..';
 // total: 240
 var items : Item[] = [

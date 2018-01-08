@@ -68,13 +68,34 @@ export interface Cart {
    */
   error: ErrorType;
 }
+export type ApiResult = Promise<{
+  result: any;
+  code: number;
+}>
 export interface Api {
   fetch(
     ctx: any
-  ): {
-    result: any;
-    code: number;
-  };
+  ): ApiResult;
+  add?(
+    ctx: any,
+    item : Item
+  ): ApiResult;
+  update?(
+    ctx: any,
+    item : Item
+  ): ApiResult;
+  remove?(
+    ctx: any,
+    item : Item
+  ): ApiResult;
+  
+  choose?(
+    ctx: any,
+    activity
+  ): ApiResult;
+  getCartActivities?(
+    ctx: any
+  ): ApiResult;
 }
 /**
  * thunk接口
@@ -96,8 +117,17 @@ export interface SalePlugin<T, A> {
     [index: string]: string;
   };
   actions: A;
-  thunk: Thunk;
   reducer: T;
   calculate: T;
 }
 export type ActionFunc = (data: any, saleType: string) => redux.AnyAction;
+
+export interface ApiItem {
+  id : string,
+  quantity : number
+}
+
+export interface ApiActivity {
+  type : string,
+  chooseId : string
+}

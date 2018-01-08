@@ -3,11 +3,11 @@
  */
 import { CategoryType, Item, Cart, SalePlugin, Actions } from "../interface";
 import { init_cart, add, remove, update, throwError } from "../actions/index";
-import { Api } from "../actions/thunk";
-import * as redux from 'redux';
+import { Api } from "../interface";
+import * as redux from "redux";
 /**
  * 活动定义，可以是比如全场满减活动，优惠券等
- * 
+ *
  * @interface Sale
  */
 export interface Sale {
@@ -19,12 +19,12 @@ export interface Sale {
   type: SaleType;
   /**
    * 规则，满减的额度和减去的金额
-   * 
+   *
    */
   rule: {
     threshold: number;
     amount: number;
-    desc?:string
+    desc?: string;
   };
   /**
    * 应用的商品，限定某个类目还是所有商品
@@ -118,7 +118,7 @@ export interface CartWithSale extends Cart {
 /**
  * 购物车接口函数
  */
-export type CartWithSaleFunc = redux.Reducer<CartWithSale>
+export type CartWithSaleFunc = redux.Reducer<CartWithSale>;
 
 function isOk(result) {
   return result.code == 200;
@@ -131,19 +131,19 @@ var CONST = {
   CHOOSE_SALE: "CHOOSE_SALE"
 };
 export interface extActions extends Actions {
-  init_sale : (data : Sale[], saleType : string) => redux.AnyAction
-  choose_sale : (data : string, saleType : string) => redux.AnyAction
+  init_sale: (data: Sale[], saleType: string) => redux.AnyAction;
+  choose_sale: (data: string, saleType: string) => redux.AnyAction;
 }
 /**
  * 活动的action定义
  */
-var actions : extActions = {
-  init_sale: (sales = [], saleType) : redux.AnyAction => {
+var actions: extActions = {
+  init_sale: (sales = [], saleType): redux.AnyAction => {
     sales = sales.map(item => ({
       ...item,
-      rule : item.rule || {
-        threshold : -1,
-        amount : 0
+      rule: item.rule || {
+        threshold: -1,
+        amount: 0
       },
       // 不传apply默认是全场优惠
       apply: item.apply || {
@@ -159,7 +159,7 @@ var actions : extActions = {
       saleType
     };
   },
-  choose_sale: (saleId, saleType) : redux.AnyAction => {
+  choose_sale: (saleId, saleType): redux.AnyAction => {
     return {
       type: CONST.CHOOSE_SALE,
       saleId,
@@ -171,8 +171,30 @@ var thunk = {
   fetchSales: (ctx, api: Api, saleType) => {
     return async dispatch => {
       var result = await api.fetch(ctx);
+      var cartActivitiesResult = await api.getCartActivities(ctx);
       if (isOk(result)) {
         dispatch(actions.init_sale(result.result, saleType));
+        var cartActivities = cartActivitiesResult.result;
+        for (var activity of cartActivities) {
+          if(activity.type == saleType && activity.chooseId){
+            dispatch(actions.choose_sale(activity.chooseId, saleType));
+          }
+        }
+      } else {
+        dispatch(throwError(result.code));
+      }
+    };
+  },
+  chooseActivity: (ctx, api: Api, saleType, sale) => {
+    return async dispatch => {
+      var result = await api.choose(ctx, {type : saleType, chooseId : sale.id});
+      if (isOk(result)) {
+        var activities = result.result;
+        for (var activity of activities) {
+          if(activity.type == saleType){
+            dispatch(actions.choose_sale(activity.chooseId, saleType));
+          }
+        }
       } else {
         dispatch(throwError(result.code));
       }
@@ -182,8 +204,8 @@ var thunk = {
 /**
  * 定义reducer
  */
-var reducer = (saleType) : CartWithSaleFunc => {
-  return (state: CartWithSale, action : redux.AnyAction) : CartWithSale => {
+var reducer = (saleType): CartWithSaleFunc => {
+  return (state: CartWithSale, action: redux.AnyAction): CartWithSale => {
     // 初始化数据
     state = {
       ...state,
@@ -208,7 +230,7 @@ var reducer = (saleType) : CartWithSaleFunc => {
                     type: saleType,
                     validSales: [],
                     chosenSale: null,
-                    defaultSale : null,
+                    defaultSale: null,
                     bestSale: null
                   };
                 else return activity;
@@ -221,7 +243,7 @@ var reducer = (saleType) : CartWithSaleFunc => {
                   type: saleType,
                   validSales: [],
                   chosenSale: null,
-                  defaultSale : null,
+                  defaultSale: null,
                   bestSale: null
                 }
               ]
@@ -251,10 +273,10 @@ var reducer = (saleType) : CartWithSaleFunc => {
 };
 /**
  * 计算相关数据
- * @param saleType 
+ * @param saleType
  */
-var calculate = (saleType) : CartWithSaleFunc => {
-  return (cart: CartWithSale) : CartWithSale => {
+var calculate = (saleType): CartWithSaleFunc => {
+  return (cart: CartWithSale): CartWithSale => {
     var { grossTotal, activities, items } = cart;
     var preTotal = grossTotal;
     var reduceActivities = activities.map(activity => {
@@ -364,14 +386,15 @@ var calculate = (saleType) : CartWithSaleFunc => {
 };
 /**
  * 插件的定义
- * @param type 
+ * @param type
  */
 export var plugin = (type): SalePlugin<CartWithSaleFunc, extActions> => {
   return {
     CONST,
     actions,
     reducer: reducer(type),
-    thunk,
     calculate: calculate(type)
   };
 };
+
+export {thunk}

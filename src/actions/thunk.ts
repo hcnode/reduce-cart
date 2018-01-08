@@ -1,6 +1,6 @@
 // import {GetCart, GetSales} from '../api'
 import {init_cart, add, remove, update, throwError} from './index'
-import { CategoryType, Item, Cart, Api } from "../interface";
+import { CategoryType, Item, Cart, Api, ApiItem, ApiActivity } from "../interface";
 
 function isOk(result){
     return result.code == 200;
@@ -22,7 +22,7 @@ function fetchItems(ctx, api : Api){
  */
 function addItem(ctx, item : Item, api : Api){
     return async dispatch => {
-        var result = await api.fetch(ctx);
+        var result = await api.add(ctx, item);
         if(isOk(result)){
             dispatch(add(item))
         }else{
@@ -33,7 +33,7 @@ function addItem(ctx, item : Item, api : Api){
 
 function removeItem(ctx, item : Item, api : Api){
     return async dispatch => {
-        var result = await api.fetch(ctx);
+        var result = await api.remove(ctx, item);
         if(isOk(result)){
             dispatch(remove(item))
         }else{
@@ -44,7 +44,7 @@ function removeItem(ctx, item : Item, api : Api){
 
 function updateItem(ctx, item : Item, api : Api){
     return async dispatch => {
-        var result = await api.fetch(ctx);
+        var result = await api.update(ctx, item);
         if(isOk(result)){
             dispatch(update(item))
         }else{
@@ -53,4 +53,6 @@ function updateItem(ctx, item : Item, api : Api){
     }
 }
 
-export {fetchItems, addItem, removeItem, updateItem, Api}
+
+
+export {fetchItems, addItem, removeItem, updateItem}

@@ -5,3 +5,4 @@
 test/reducer.test.ts
 test/multiactivities.test.ts
 test/redux.test.ts
+test/thunk.test.ts
