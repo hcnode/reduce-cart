@@ -42,3 +42,5 @@ export * from "./src/plugins/sale";
 export * from "./src/interface";
 export { plugin as ActivityPlugin, actions, CONST };
 export { bonus as bonusPlugin, shipFree as shipFreePlugin };
+export * from './src/actions/thunk'
+export {thunk as activityThunk} from './src/plugins/sale'
