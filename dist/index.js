@@ -45,4 +45,7 @@ exports.createCustomPlugin = (saleType, calculate) => {
 };
 __export(require("./src/plugins/sale"));
 __export(require("./src/interface"));
+__export(require("./src/actions/thunk"));
+var sale_2 = require("./src/plugins/sale");
+exports.activityThunk = sale_2.thunk;
 //# sourceMappingURL=index.js.map
