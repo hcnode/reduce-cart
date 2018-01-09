@@ -22,7 +22,7 @@ exports.fetchItems = fetchItems;
  */
 function addItem(ctx, item, api) {
     return async (dispatch) => {
-        var result = await api.fetch(ctx);
+        var result = await api.add(ctx, item);
         if (isOk(result)) {
             dispatch(index_1.add(item));
         }
@@ -34,7 +34,7 @@ function addItem(ctx, item, api) {
 exports.addItem = addItem;
 function removeItem(ctx, item, api) {
     return async (dispatch) => {
-        var result = await api.fetch(ctx);
+        var result = await api.remove(ctx, item);
         if (isOk(result)) {
             dispatch(index_1.remove(item));
         }
@@ -46,7 +46,7 @@ function removeItem(ctx, item, api) {
 exports.removeItem = removeItem;
 function updateItem(ctx, item, api) {
     return async (dispatch) => {
-        var result = await api.fetch(ctx);
+        var result = await api.update(ctx, item);
         if (isOk(result)) {
             dispatch(index_1.update(item));
         }

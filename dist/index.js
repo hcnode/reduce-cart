@@ -11,6 +11,10 @@ const const_1 = require("./src/actions/const");
 exports.CONST = const_1.default;
 const actions = require("./src/actions/index");
 exports.actions = actions;
+const bonus_1 = require("./src/plugins/bonus");
+exports.bonusPlugin = bonus_1.default;
+const shipFree_1 = require("./src/plugins/shipFree");
+exports.shipFreePlugin = shipFree_1.default;
 var combineCalculate = extCalculates => {
     var allCalculates = [calculate_1.default].concat(extCalculates);
     return state => {

@@ -2,7 +2,8 @@
  * 通用中间件定义
  */
 import { CategoryType, Item, Cart, SalePlugin, Actions } from "../interface";
-import * as redux from 'redux';
+import { Api } from "../interface";
+import * as redux from "redux";
 /**
  * 活动定义，可以是比如全场满减活动，优惠券等
  *
@@ -121,8 +122,13 @@ export interface extActions extends Actions {
     init_sale: (data: Sale[], saleType: string) => redux.AnyAction;
     choose_sale: (data: string, saleType: string) => redux.AnyAction;
 }
+declare var thunk: {
+    fetchSales: (ctx: any, api: Api, saleType: any) => (dispatch: any) => Promise<void>;
+    chooseActivity: (ctx: any, api: Api, saleType: any, sale: any) => (dispatch: any) => Promise<void>;
+};
 /**
  * 插件的定义
  * @param type
  */
 export declare var plugin: (type: any) => SalePlugin<redux.Reducer<CartWithSale>, extActions>;
+export { thunk };

@@ -67,8 +67,31 @@ var thunk = {
     fetchSales: (ctx, api, saleType) => {
         return async (dispatch) => {
             var result = await api.fetch(ctx);
+            var cartActivitiesResult = await api.getCartActivities(ctx);
             if (isOk(result)) {
                 dispatch(actions.init_sale(result.result, saleType));
+                var cartActivities = cartActivitiesResult.result;
+                for (var activity of cartActivities) {
+                    if (activity.type == saleType && activity.chooseId) {
+                        dispatch(actions.choose_sale(activity.chooseId, saleType));
+                    }
+                }
+            }
+            else {
+                dispatch(index_1.throwError(result.code));
+            }
+        };
+    },
+    chooseActivity: (ctx, api, saleType, sale) => {
+        return async (dispatch) => {
+            var result = await api.choose(ctx, { type: saleType, chooseId: sale.id });
+            if (isOk(result)) {
+                var activities = result.result;
+                for (var activity of activities) {
+                    if (activity.type == saleType) {
+                        dispatch(actions.choose_sale(activity.chooseId, saleType));
+                    }
+                }
             }
             else {
                 dispatch(index_1.throwError(result.code));
@@ -76,6 +99,7 @@ var thunk = {
         };
     }
 };
+exports.thunk = thunk;
 /**
  * 定义reducer
  */
@@ -236,7 +260,6 @@ exports.plugin = (type) => {
         CONST,
         actions,
         reducer: reducer(type),
-        thunk,
         calculate: calculate(type)
     };
 };

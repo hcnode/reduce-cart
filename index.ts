@@ -4,7 +4,9 @@ import calculate from "./src/reducers/calculate";
 import CONST from "./src/actions/const";
 import * as actions from "./src/actions/index";
 import * as Interface from "./src/interface";
-import * as redux from 'redux'
+import * as redux from "redux";
+import bonus from "./src/plugins/bonus";
+import shipFree from "./src/plugins/shipFree";
 var combineCalculate = extCalculates => {
   var allCalculates = [calculate].concat(extCalculates);
   return state => {
@@ -26,12 +28,12 @@ var combineReducers = (extReducers, calculate) => {
   };
 };
 type SalePluginType = Interface.SalePlugin<CartWithSaleFunc, extActions>;
-export var createReducers = (plugins : SalePluginType[]) => {
+export var createReducers = (plugins: SalePluginType[]) => {
   var calculate = combineCalculate(plugins.map(plugin => plugin.calculate));
   var reducer = combineReducers(plugins.map(plugin => plugin.reducer), calculate);
   return reducer;
-}
-export var createCustomPlugin = (saleType : string, calculate) : SalePluginType => {
+};
+export var createCustomPlugin = (saleType: string, calculate): SalePluginType => {
   var customPlugin: SalePluginType = plugin(saleType);
   customPlugin.calculate = calculate;
   return customPlugin;
@@ -39,3 +41,4 @@ export var createCustomPlugin = (saleType : string, calculate) : SalePluginType 
 export * from "./src/plugins/sale";
 export * from "./src/interface";
 export { plugin as ActivityPlugin, actions, CONST };
+export { bonus as bonusPlugin, shipFree as shipFreePlugin };
