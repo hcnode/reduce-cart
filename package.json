@@ -1,13 +1,13 @@
 {
   "name": "reduce-cart",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "",
   "main": "./dist/index.js",
   "scripts": {
     "test": "set NODE_ENV=test&&nyc mocha",
     "doc": "rm -rf ./doc && typedoc --out ./doc --mode modules --excludeNotExported ./index.ts",
     "build": "rm -rf ./dist && tsc",
-    "publish" : "npm run build && npm version patch && npm publish"
+    "publish": "npm run build && npm version patch && npm publish"
   },
   "repository": {
     "type": "git",
