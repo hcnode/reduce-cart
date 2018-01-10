@@ -67,4 +67,5 @@ function checkedItem(ctx, item, api) {
         }
     };
 }
+exports.checkedItem = checkedItem;
 //# sourceMappingURL=thunk.js.map
