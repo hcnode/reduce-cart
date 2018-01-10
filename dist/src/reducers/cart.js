@@ -21,10 +21,11 @@ exports.default = (state = {
                         return item.goods.id == action.goods.id
                             ? Object.assign({}, item, { goods: Object.assign({}, item.goods, { price: action.goods && action.goods.price ? action.goods.price : item.goods.price }), quantity: type == const_1.default.UPDATE ? action.quantity : item.quantity + action.quantity, category: action.category ? action.category : item.category }) : Object.assign({}, item);
                     })
-                    : [...state.items, { goods: action.goods, quantity: action.quantity, category: action.category }] });
+                    : [...state.items, { goods: action.goods, quantity: action.quantity, category: action.category, checked: true }] });
         case const_1.default.REMOVE:
-            var existItem = state.items.find(item => item.goods.id == action.goods.id);
             return Object.assign({}, state, { items: state.items.filter(item => item.goods.id != action.goods.id) });
+        case const_1.default.CHECKED:
+            return Object.assign({}, state, { items: state.items.map(item => (item.goods.id == action.goodsId ? Object.assign({}, item, { checked: action.checked }) : item)) });
         case const_1.default.ERROR:
             return Object.assign({}, state, { error: action.code });
         default:

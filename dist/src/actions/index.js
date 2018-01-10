@@ -23,6 +23,13 @@ function update(item) {
     return Object.assign({ type: const_1.default.UPDATE }, item);
 }
 exports.update = update;
+function checked({ goodsId, checked }) {
+    return {
+        type: const_1.default.CHECKED,
+        goodsId, checked
+    };
+}
+exports.checked = checked;
 function throwError(code) {
     return {
         type: const_1.default.UPDATE,

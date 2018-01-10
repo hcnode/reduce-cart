@@ -56,4 +56,15 @@ function updateItem(ctx, item, api) {
     };
 }
 exports.updateItem = updateItem;
+function checkedItem(ctx, item, api) {
+    return async (dispatch) => {
+        var result = await api.checked(ctx, item);
+        if (isOk(result)) {
+            dispatch(index_1.checked(item));
+        }
+        else {
+            dispatch(index_1.throwError(result.code));
+        }
+    };
+}
 //# sourceMappingURL=thunk.js.map

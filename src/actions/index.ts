@@ -31,6 +31,12 @@ function update(item : Item){
     };
 }
 
+function checked({goodsId, checked}){
+    return {
+        type: ACTION.CHECKED,
+        goodsId, checked
+    };
+}
 function throwError(code : number){
     return {
         type: ACTION.UPDATE,
@@ -38,4 +44,4 @@ function throwError(code : number){
     };
 }
 
-export {init_cart, add, remove, update, throwError}
+export {init_cart, add, remove, update, checked, throwError}

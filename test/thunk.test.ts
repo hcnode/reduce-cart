@@ -67,7 +67,8 @@ var itemApi: Api = {
         return {
           goods,
           quantity: item.quantity,
-          category: goods.category
+          category: goods.category,
+          checked : true
         };
       })
     };

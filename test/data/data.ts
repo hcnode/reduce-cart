@@ -9,6 +9,7 @@ var items : Item[] = [
             price : 30
         },
         quantity : 2,
+        checked : true,
         category : 'category1'
     },
     {
@@ -18,6 +19,7 @@ var items : Item[] = [
             price : 100
         },
         quantity : 1,
+        checked : true,
         category : 'category1'
     },
     {
@@ -27,7 +29,18 @@ var items : Item[] = [
             price : 80
         },
         quantity : 1,
+        checked : true,
         category : 'category2'
+    },
+    {
+        goods : {
+            id : '8',
+            name : 'item8',
+            price : 90
+        },
+        quantity : 1,
+        checked : false,
+        category : 'category1'
     }
 ]
 var sales : Sale[] = [

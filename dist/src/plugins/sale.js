@@ -5,6 +5,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
  */
 const interface_1 = require("../interface");
 const index_1 = require("../actions/index");
+const calculate_1 = require("../reducers/calculate");
 /**
  * 优惠类型
  */
@@ -164,6 +165,7 @@ var reducer = (saleType) => {
 var calculate = (saleType) => {
     return (cart) => {
         var { grossTotal, activities, items } = cart;
+        items = calculate_1.filter(items);
         var preTotal = grossTotal;
         var reduceActivities = activities.map(activity => {
             var { sales, chosenSale, type } = activity;

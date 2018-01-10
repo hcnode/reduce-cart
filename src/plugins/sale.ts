@@ -5,6 +5,7 @@ import { CategoryType, Item, Cart, SalePlugin, Actions } from "../interface";
 import { init_cart, add, remove, update, throwError } from "../actions/index";
 import { Api } from "../interface";
 import * as redux from "redux";
+import { filter } from "../reducers/calculate";
 /**
  * 活动定义，可以是比如全场满减活动，优惠券等
  *
@@ -176,7 +177,7 @@ var thunk = {
         dispatch(actions.init_sale(result.result, saleType));
         var cartActivities = cartActivitiesResult.result;
         for (var activity of cartActivities) {
-          if(activity.type == saleType && activity.chooseId){
+          if (activity.type == saleType && activity.chooseId) {
             dispatch(actions.choose_sale(activity.chooseId, saleType));
           }
         }
@@ -187,11 +188,11 @@ var thunk = {
   },
   chooseActivity: (ctx, api: Api, saleType, sale) => {
     return async dispatch => {
-      var result = await api.choose(ctx, {type : saleType, chooseId : sale.id});
+      var result = await api.choose(ctx, { type: saleType, chooseId: sale.id });
       if (isOk(result)) {
         var activities = result.result;
         for (var activity of activities) {
-          if(activity.type == saleType){
+          if (activity.type == saleType) {
             dispatch(actions.choose_sale(activity.chooseId, saleType));
           }
         }
@@ -278,6 +279,7 @@ var reducer = (saleType): CartWithSaleFunc => {
 var calculate = (saleType): CartWithSaleFunc => {
   return (cart: CartWithSale): CartWithSale => {
     var { grossTotal, activities, items } = cart;
+    items = filter(items);
     var preTotal = grossTotal;
     var reduceActivities = activities.map(activity => {
       var { sales, chosenSale, type } = activity;
@@ -397,4 +399,4 @@ export var plugin = (type): SalePlugin<CartWithSaleFunc, extActions> => {
   };
 };
 
-export {thunk}
+export { thunk };

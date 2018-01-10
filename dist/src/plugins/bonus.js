@@ -1,9 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const _1 = require("../../");
+const calculate_1 = require("../reducers/calculate");
 function default_1() {
     return _1.createCustomPlugin("bonus", (cart) => {
         var { activities, actualTotal, items } = cart;
+        items = calculate_1.filter(items);
         var preTotal = actualTotal;
         var bonusItems = [];
         var reduceActivities = activities.map(activity => {

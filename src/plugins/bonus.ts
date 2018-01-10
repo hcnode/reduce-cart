@@ -16,9 +16,12 @@ import {
   extActions
 } from "../../";
 import * as redux from "redux";
+import { filter } from "../reducers/calculate";
+
 export default function() {
   return createCustomPlugin("bonus", (cart: CartWithSale) => {
     var { activities, actualTotal, items } = cart;
+    items = filter(items);
     var preTotal = actualTotal;
     var bonusItems = [];
     var reduceActivities = activities.map(activity => {

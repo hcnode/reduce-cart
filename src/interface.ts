@@ -46,6 +46,9 @@ export interface Item {
    * 送的
    */
   isBonus? : boolean
+
+  checked? : boolean
+  
 }
 /**
  * 购物车
@@ -87,6 +90,11 @@ export interface Api {
   remove?(
     ctx: any,
     item : Item
+  ): ApiResult;
+
+  checked?(
+    ctx: any,
+    item : CheckedItem
   ): ApiResult;
   
   choose?(
@@ -131,3 +139,4 @@ export interface ApiActivity {
   type : string,
   chooseId : string
 }
+export interface CheckedItem {goodsId : string, checked : boolean}

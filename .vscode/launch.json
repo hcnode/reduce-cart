@@ -12,10 +12,15 @@
             "args": [
                 "-u",
                 "tdd",
-                "--compilers",
-                "js:ts-node/register,ts:ts-node/register,tsx:ts-node/register",
+                "--require",
+                "ts-node/register",
+                "--watch-extensions",
+                "ts,tsx",
                 "--colors"
             ],
+            "env": {
+                "TS_NODE_CACHE" : "true"
+            },
             "sourceMaps": true,
             "cwd": "${workspaceRoot}",
             "internalConsoleOptions": "openOnSessionStart"

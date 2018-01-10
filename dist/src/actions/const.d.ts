@@ -8,5 +8,6 @@ declare const Actions: {
     UPDATE: string;
     SUBMIT: string;
     ERROR: string;
+    CHECKED: string;
 };
 export default Actions;

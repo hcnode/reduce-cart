@@ -65,13 +65,13 @@ var reducerAssert = {
   },
   init_cart : state => {
     state.should.be.ok;
-    state.items.length.should.be.equal(3);
+    state.items.length.should.be.equal(4);
     state.actualTotal.should.be.equal(240);
     state.grossTotal.should.be.equal(240);
   },
   init_sale : state => {
     state.should.be.ok;
-    state.items.length.should.be.equal(3);
+    state.items.length.should.be.equal(4);
     state.activities.length.should.be.equal(1);
     var activity = state.activities[0];
     activity.validSales.length.should.be.equal(3);

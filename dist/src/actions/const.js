@@ -9,7 +9,8 @@ const Actions = {
     REMOVE: 'REMOVE',
     UPDATE: 'UPDATE',
     SUBMIT: 'SUBMIT',
-    ERROR: 'ERROR'
+    ERROR: 'ERROR',
+    CHECKED: 'CHECKED'
 };
 exports.default = Actions;
 //# sourceMappingURL=const.js.map

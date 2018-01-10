@@ -12,6 +12,7 @@ declare function add(item: Item): {
     quantity: number;
     category: string;
     isBonus?: boolean;
+    checked?: boolean;
     type: string;
 };
 declare function remove(item: Item): {
@@ -23,6 +24,7 @@ declare function remove(item: Item): {
     quantity: number;
     category: string;
     isBonus?: boolean;
+    checked?: boolean;
     type: string;
 };
 declare function update(item: Item): {
@@ -34,10 +36,19 @@ declare function update(item: Item): {
     quantity: number;
     category: string;
     isBonus?: boolean;
+    checked?: boolean;
     type: string;
+};
+declare function checked({goodsId, checked}: {
+    goodsId: any;
+    checked: any;
+}): {
+    type: string;
+    goodsId: any;
+    checked: any;
 };
 declare function throwError(code: number): {
     type: string;
     code: number;
 };
-export { init_cart, add, remove, update, throwError };
+export { init_cart, add, remove, update, checked, throwError };

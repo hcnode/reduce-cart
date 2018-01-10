@@ -33,10 +33,17 @@ describe("reducer", () => {
     state = reducer(state, actions.init_cart(items));
     reducerAssert.init_cart(state);
   });
-
   it("#action: init_sale", () => {
     state = reducer(state, activityPlugin.actions.init_sale(sales, 'activity'));
     reducerAssert.init_sale(state);
+  });
+  it("#action: CHECKED", () => {
+    state = reducer(state, actions.checked({goodsId : '8', checked : true}));
+    state.actualTotal.should.be.equal(300);
+    state.grossTotal.should.be.equal(330);
+    state = reducer(state, actions.checked({goodsId : '8', checked : false}));
+    state.actualTotal.should.be.equal(230);
+    state.grossTotal.should.be.equal(240);
   });
   it("#action: choose_sale", () => {
     var activity = state.activities[0];
