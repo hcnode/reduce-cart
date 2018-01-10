@@ -65,4 +65,4 @@ function checkedItem(ctx, item : CheckedItem, api : Api){
 
 
 
-export {fetchItems, addItem, removeItem, updateItem}
+export {fetchItems, addItem, removeItem, updateItem, checkedItem}
