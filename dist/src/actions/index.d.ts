@@ -5,6 +5,7 @@ declare function init_cart(data: any): {
 };
 declare function add(item: Item): {
     goods: {
+        [key: string]: any;
         id: string;
         name: string;
         price: number;
@@ -17,6 +18,7 @@ declare function add(item: Item): {
 };
 declare function remove(item: Item): {
     goods: {
+        [key: string]: any;
         id: string;
         name: string;
         price: number;
@@ -29,6 +31,7 @@ declare function remove(item: Item): {
 };
 declare function update(item: Item): {
     goods: {
+        [key: string]: any;
         id: string;
         name: string;
         price: number;
