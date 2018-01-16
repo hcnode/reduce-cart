@@ -122,6 +122,10 @@ export interface extActions extends Actions {
     init_sale: (data: Sale[], saleType: string) => redux.AnyAction;
     choose_sale: (data: string, saleType: string) => redux.AnyAction;
 }
+/**
+ * 活动的action定义
+ */
+declare var actions: extActions;
 declare var thunk: {
     fetchSales: (ctx: any, api: Api, saleType: any) => (dispatch: any) => Promise<void>;
     chooseActivity: (ctx: any, api: Api, saleType: any, sale: any) => (dispatch: any) => Promise<void>;
@@ -131,4 +135,4 @@ declare var thunk: {
  * @param type
  */
 export declare var plugin: (type: any) => SalePlugin<redux.Reducer<CartWithSale>, extActions>;
-export { thunk };
+export { thunk, actions as saleAction };

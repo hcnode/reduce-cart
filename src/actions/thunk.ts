@@ -64,7 +64,7 @@ function checkedItem(ctx, item : CheckedItem, api : Api){
 }
 function checkedAllItems(ctx, api : Api, checked){
     return async dispatch => {
-        var result = await api.checkedAll(ctx);
+        var result = await api.checkedAll(ctx, checked);
         if(isOk(result)){
             dispatch(checkedAll(checked))
         }else{

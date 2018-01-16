@@ -64,6 +64,7 @@ var actions = {
         };
     }
 };
+exports.saleAction = actions;
 var thunk = {
     fetchSales: (ctx, api, saleType) => {
         return async (dispatch) => {
