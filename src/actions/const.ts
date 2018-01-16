@@ -10,6 +10,7 @@ const Actions = {
     ERROR : 'ERROR',
     CHECKED : 'CHECKED',
     CHECKEDALL : 'CHECKEDALL',
-    EMPTY : 'EMPTY'
+    EMPTY : 'EMPTY',
+    REMOVECHECKED : 'REMOVECHECKED'
 };
 export default Actions;

@@ -107,6 +107,9 @@ export interface Api {
     ctx: any
   ): ApiResult;
   
+  removeChecked?(
+    ctx: any
+  ): ApiResult;
   choose?(
     ctx: any,
     activity

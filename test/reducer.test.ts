@@ -241,6 +241,11 @@ describe("reducer", () => {
   });
 
   
+  it("#action: REMOVECHECKED", () => {
+    state = reducer(state, actions.checked({goodsId : '1', checked : false}));
+    state = reducer(state, actions.removeChecked());
+    state.items.length.should.be.equal(1);
+  });
   it("#action: EMPTY", () => {
     state = reducer(state, actions.empty());
     state.actualTotal.should.be.equal(0);

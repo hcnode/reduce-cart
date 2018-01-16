@@ -34,6 +34,8 @@ exports.default = (state = {
             return Object.assign({}, state, { items: state.items.map(item => (Object.assign({}, item, { checked: action.checked }))) });
         case const_1.default.EMPTY:
             return Object.assign({}, state, { items: [] });
+        case const_1.default.REMOVECHECKED:
+            return Object.assign({}, state, { items: state.items.filter(item => !item.checked) });
         case const_1.default.ERROR:
             return Object.assign({}, state, { error: action.code });
         default:

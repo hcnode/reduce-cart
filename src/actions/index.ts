@@ -49,6 +49,11 @@ function empty(){
         type: ACTION.EMPTY
     };
 }
+function removeChecked(){
+    return {
+        type: ACTION.REMOVECHECKED
+    };
+}
 function throwError(code : number){
     return {
         type: ACTION.UPDATE,
@@ -56,4 +61,4 @@ function throwError(code : number){
     };
 }
 
-export {init_cart, add, remove, update, checked, throwError, checkedAll, empty}
+export {init_cart, add, remove, update, checked, throwError, checkedAll, empty, removeChecked}

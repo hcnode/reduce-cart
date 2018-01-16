@@ -30,7 +30,7 @@ export interface Sale {
   /**
    * 应用的商品，限定某个类目还是所有商品
    */
-  apply: {
+  apply?: {
     categoryType: CategoryType;
     value: any;
   };

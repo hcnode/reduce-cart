@@ -59,8 +59,11 @@ declare function checkedAll({checked}: {
 declare function empty(): {
     type: string;
 };
+declare function removeChecked(): {
+    type: string;
+};
 declare function throwError(code: number): {
     type: string;
     code: number;
 };
-export { init_cart, add, remove, update, checked, throwError, checkedAll, empty };
+export { init_cart, add, remove, update, checked, throwError, checkedAll, empty, removeChecked };

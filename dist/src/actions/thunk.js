@@ -80,6 +80,18 @@ function checkedAllItems(ctx, api, checked) {
     };
 }
 exports.checkedAllItems = checkedAllItems;
+function removeCheckedItems(ctx, api) {
+    return async (dispatch) => {
+        var result = await api.removeChecked(ctx);
+        if (isOk(result)) {
+            dispatch(index_1.removeChecked());
+        }
+        else {
+            dispatch(index_1.throwError(result.code));
+        }
+    };
+}
+exports.removeCheckedItems = removeCheckedItems;
 function emptyItems(ctx, api) {
     return async (dispatch) => {
         var result = await api.empty(ctx);

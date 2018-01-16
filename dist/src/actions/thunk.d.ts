@@ -8,5 +8,6 @@ declare function removeItem(ctx: any, item: Item, api: Api): (dispatch: any) => 
 declare function updateItem(ctx: any, item: Item, api: Api): (dispatch: any) => Promise<void>;
 declare function checkedItem(ctx: any, item: CheckedItem, api: Api): (dispatch: any) => Promise<void>;
 declare function checkedAllItems(ctx: any, api: Api, checked: any): (dispatch: any) => Promise<void>;
+declare function removeCheckedItems(ctx: any, api: Api): (dispatch: any) => Promise<void>;
 declare function emptyItems(ctx: any, api: Api): (dispatch: any) => Promise<void>;
-export { fetchItems, addItem, removeItem, updateItem, checkedItem, checkedAllItems, emptyItems };
+export { fetchItems, addItem, removeItem, updateItem, checkedItem, checkedAllItems, emptyItems, removeCheckedItems };

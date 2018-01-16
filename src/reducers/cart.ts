@@ -61,17 +61,20 @@ export default (
     case ActionType.CHECKEDALL:
       return {
         ...state,
-        items: state.items.map(
-          item => ({
-            ...item,
-            checked: action.checked
-          })
-        )
+        items: state.items.map(item => ({
+          ...item,
+          checked: action.checked
+        }))
       };
     case ActionType.EMPTY:
       return {
         ...state,
-        items : []
+        items: []
+      };
+    case ActionType.REMOVECHECKED:
+      return {
+        ...state,
+        items: state.items.filter(item => !item.checked)
       };
     case ActionType.ERROR:
       return {

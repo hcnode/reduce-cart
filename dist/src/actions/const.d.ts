@@ -11,5 +11,6 @@ declare const Actions: {
     CHECKED: string;
     CHECKEDALL: string;
     EMPTY: string;
+    REMOVECHECKED: string;
 };
 export default Actions;

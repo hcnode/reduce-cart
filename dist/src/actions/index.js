@@ -43,6 +43,12 @@ function empty() {
     };
 }
 exports.empty = empty;
+function removeChecked() {
+    return {
+        type: const_1.default.REMOVECHECKED
+    };
+}
+exports.removeChecked = removeChecked;
 function throwError(code) {
     return {
         type: const_1.default.UPDATE,

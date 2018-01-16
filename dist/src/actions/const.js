@@ -12,7 +12,8 @@ const Actions = {
     ERROR: 'ERROR',
     CHECKED: 'CHECKED',
     CHECKEDALL: 'CHECKEDALL',
-    EMPTY: 'EMPTY'
+    EMPTY: 'EMPTY',
+    REMOVECHECKED: 'REMOVECHECKED'
 };
 exports.default = Actions;
 //# sourceMappingURL=const.js.map

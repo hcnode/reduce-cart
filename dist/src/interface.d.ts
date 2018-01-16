@@ -80,6 +80,7 @@ export interface Api {
     checked?(ctx: any, item: CheckedItem): ApiResult;
     checkedAll?(ctx: any, checked: boolean): ApiResult;
     empty?(ctx: any): ApiResult;
+    removeChecked?(ctx: any): ApiResult;
     choose?(ctx: any, activity: any): ApiResult;
     getCartActivities?(ctx: any): ApiResult;
 }
