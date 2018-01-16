@@ -399,4 +399,4 @@ export var plugin = (type): SalePlugin<CartWithSaleFunc, extActions> => {
   };
 };
 
-export { thunk };
+export { thunk, actions as saleAction };
