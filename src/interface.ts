@@ -97,6 +97,14 @@ export interface Api {
     ctx: any,
     item : CheckedItem
   ): ApiResult;
+
+  checkedAll?(
+    ctx: any
+  ): ApiResult;
+
+  empty?(
+    ctx: any
+  ): ApiResult;
   
   choose?(
     ctx: any,

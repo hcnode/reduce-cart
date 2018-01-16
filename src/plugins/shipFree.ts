@@ -25,6 +25,7 @@ export default function() {
       if (activity.type == "shipFree") {
         var sale = activity.sales[0];
         actualTotal = preTotal >= sale.rule.threshold ? preTotal : preTotal + sale.rule.amount;
+        actualTotal = Math.max(0, actualTotal);
         return {
           ...activity,
           preTotal,

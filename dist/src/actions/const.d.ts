@@ -9,5 +9,7 @@ declare const Actions: {
     SUBMIT: string;
     ERROR: string;
     CHECKED: string;
+    CHECKEDALL: string;
+    EMPTY: string;
 };
 export default Actions;

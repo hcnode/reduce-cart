@@ -26,13 +26,19 @@ export default (
               return item.goods.id == action.goods.id
                 ? {
                     ...item,
-                    goods : {...item.goods, price : action.goods && action.goods.price ? action.goods.price : item.goods.price},
+                    goods: {
+                      ...item.goods,
+                      price: action.goods && action.goods.price ? action.goods.price : item.goods.price
+                    },
                     quantity: type == ActionType.UPDATE ? action.quantity : item.quantity + action.quantity,
                     category: action.category ? action.category : item.category
                   }
                 : { ...item };
             })
-          : [...state.items, { goods: action.goods, quantity: action.quantity, category: action.category, checked : true }]
+          : [
+              ...state.items,
+              { goods: action.goods, quantity: action.quantity, category: action.category, checked: true }
+            ]
       };
     case ActionType.REMOVE:
       return {
@@ -42,10 +48,30 @@ export default (
     case ActionType.CHECKED:
       return {
         ...state,
-        items: state.items.map(item => (item.goods.id == action.goodsId ? {
-          ...item,
-          checked : action.checked
-        } : item))
+        items: state.items.map(
+          item =>
+            item.goods.id == action.goodsId
+              ? {
+                  ...item,
+                  checked: action.checked
+                }
+              : item
+        )
+      };
+    case ActionType.CHECKEDALL:
+      return {
+        ...state,
+        items: state.items.map(
+          item => ({
+            ...item,
+            checked: action.checked
+          })
+        )
+      };
+    case ActionType.EMPTY:
+      return {
+        ...state,
+        items : []
       };
     case ActionType.ERROR:
       return {

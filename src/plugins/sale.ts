@@ -294,7 +294,7 @@ var calculate = (saleType): CartWithSaleFunc => {
           var value = sale.apply.value;
           var result = {
             sale,
-            actualTotal: preTotal - reduceAmount,
+            actualTotal: Math.max(preTotal - reduceAmount, 0),
             reduceAmount
           };
           // 直减

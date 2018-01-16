@@ -78,6 +78,8 @@ export interface Api {
     update?(ctx: any, item: Item): ApiResult;
     remove?(ctx: any, item: Item): ApiResult;
     checked?(ctx: any, item: CheckedItem): ApiResult;
+    checkedAll?(ctx: any): ApiResult;
+    empty?(ctx: any): ApiResult;
     choose?(ctx: any, activity: any): ApiResult;
     getCartActivities?(ctx: any): ApiResult;
 }

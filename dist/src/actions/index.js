@@ -30,6 +30,19 @@ function checked({ goodsId, checked }) {
     };
 }
 exports.checked = checked;
+function checkedAll({ checked }) {
+    return {
+        type: const_1.default.CHECKEDALL,
+        checked
+    };
+}
+exports.checkedAll = checkedAll;
+function empty() {
+    return {
+        type: const_1.default.EMPTY
+    };
+}
+exports.empty = empty;
 function throwError(code) {
     return {
         type: const_1.default.UPDATE,

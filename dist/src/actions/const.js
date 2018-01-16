@@ -10,7 +10,9 @@ const Actions = {
     UPDATE: 'UPDATE',
     SUBMIT: 'SUBMIT',
     ERROR: 'ERROR',
-    CHECKED: 'CHECKED'
+    CHECKED: 'CHECKED',
+    CHECKEDALL: 'CHECKEDALL',
+    EMPTY: 'EMPTY'
 };
 exports.default = Actions;
 //# sourceMappingURL=const.js.map

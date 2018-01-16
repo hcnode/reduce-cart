@@ -1,5 +1,5 @@
 // import {GetCart, GetSales} from '../api'
-import {init_cart, add, remove, update, checked, throwError} from './index'
+import {init_cart, add, remove, update, checked, throwError, empty, checkedAll} from './index'
 import { CategoryType, Item, Cart, Api, ApiItem, ApiActivity, CheckedItem } from "../interface";
 
 function isOk(result){
@@ -62,7 +62,27 @@ function checkedItem(ctx, item : CheckedItem, api : Api){
         }
     }
 }
+function checkedAllItems(ctx, api : Api, checked){
+    return async dispatch => {
+        var result = await api.checkedAll(ctx);
+        if(isOk(result)){
+            dispatch(checkedAll(checked))
+        }else{
+            dispatch(throwError(result.code))
+        }
+    }
+}
 
 
+function emptyItems(ctx, api : Api){
+    return async dispatch => {
+        var result = await api.empty(ctx);
+        if(isOk(result)){
+            dispatch(empty())
+        }else{
+            dispatch(throwError(result.code))
+        }
+    }
+}
 
-export {fetchItems, addItem, removeItem, updateItem, checkedItem}
+export {fetchItems, addItem, removeItem, updateItem, checkedItem, checkedAllItems, emptyItems}

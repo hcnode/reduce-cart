@@ -45,6 +45,7 @@ describe("reducer", () => {
     state.actualTotal.should.be.equal(230);
     state.grossTotal.should.be.equal(240);
   });
+  
   it("#action: choose_sale", () => {
     var activity = state.activities[0];
     var { validSales, bestSale } = activity;
@@ -228,5 +229,22 @@ describe("reducer", () => {
         sale: { id: "6" }
       }
     ]);
+  });
+  
+  it("#action: CHECKEDALL", () => {
+    state = reducer(state, actions.checkedAll({checked : false}));
+    state.actualTotal.should.be.equal(0);
+    state.grossTotal.should.be.equal(0);
+    state = reducer(state, actions.checkedAll({checked : true}));
+    state.actualTotal.should.be.equal(400);
+    state.grossTotal.should.be.equal(430);
+  });
+
+  
+  it("#action: EMPTY", () => {
+    state = reducer(state, actions.empty());
+    state.actualTotal.should.be.equal(0);
+    state.grossTotal.should.be.equal(0);
+    state.items.length.should.be.equal(0);
   });
 });

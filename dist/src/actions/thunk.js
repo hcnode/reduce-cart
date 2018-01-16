@@ -68,4 +68,28 @@ function checkedItem(ctx, item, api) {
     };
 }
 exports.checkedItem = checkedItem;
+function checkedAllItems(ctx, api, checked) {
+    return async (dispatch) => {
+        var result = await api.checkedAll(ctx);
+        if (isOk(result)) {
+            dispatch(index_1.checkedAll(checked));
+        }
+        else {
+            dispatch(index_1.throwError(result.code));
+        }
+    };
+}
+exports.checkedAllItems = checkedAllItems;
+function emptyItems(ctx, api) {
+    return async (dispatch) => {
+        var result = await api.empty(ctx);
+        if (isOk(result)) {
+            dispatch(index_1.empty());
+        }
+        else {
+            dispatch(index_1.throwError(result.code));
+        }
+    };
+}
+exports.emptyItems = emptyItems;
 //# sourceMappingURL=thunk.js.map
