@@ -49,7 +49,10 @@ export interface Item {
   isBonus? : boolean
 
   checked? : boolean
-  
+  /**
+   * 在validActivity里面的validItems，belonged为true时，属于这个活动
+   */
+  belonged? : boolean
 }
 /**
  * 购物车

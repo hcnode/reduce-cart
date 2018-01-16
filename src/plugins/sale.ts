@@ -303,16 +303,22 @@ var calculate = (saleType): CartWithSaleFunc => {
               // 所有商品可以使用
               return {
                 ...result,
-                validItems: [...items]
+                validItems: items.map(item => ({
+                  ...item,
+                  belonged : true
+                }))
               };
             } else {
-              var validItems = items.filter(
-                item => (categoryType == CategoryType.GOODS ? item.goods.id == value : item.category == value)
+              var validItems = items.map(
+                item => (categoryType == CategoryType.GOODS ? item.goods.id == value : item.category == value) ? {
+                  ...item,
+                  belonged : true
+                } : item
               );
-              return validItems.length > 0
+              return validItems.filter(item => item.belonged).length > 0
                 ? {
                     ...result,
-                    validItems
+                    validItems : validItems.sort((a, b) => a.belonged ? b.belonged ? 0 : 1 : !b.belonged ? 0 : -1)
                   }
                 : null;
             }
@@ -323,7 +329,10 @@ var calculate = (saleType): CartWithSaleFunc => {
               return grossTotal >= sale.rule.threshold
                 ? {
                     ...result,
-                    validItems: [...items]
+                    validItems: items.map(item => ({
+                      ...item,
+                      belonged : true
+                    }))
                   }
                 : null;
             } else {
@@ -332,15 +341,17 @@ var calculate = (saleType): CartWithSaleFunc => {
               var grossTotalByCategory = items.reduce((total, item) => {
                 var match = value == (categoryType == CategoryType.GOODS ? item.goods.id : item.category);
                 if (match) {
-                  validItems.push(item);
+                  validItems.push({...item, belonged : true});
                   total += item.goods.price * item.quantity;
+                }else{
+                  validItems.push(item);
                 }
                 return total;
               }, 0);
               return grossTotalByCategory > sale.rule.threshold
                 ? {
                     ...result,
-                    validItems
+                    validItems : validItems.sort((a, b) => a.belonged ? b.belonged ? 0 : 1 : !b.belonged ? 0 : -1)
                   }
                 : null;
             }

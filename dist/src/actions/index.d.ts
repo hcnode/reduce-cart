@@ -14,6 +14,7 @@ declare function add(item: Item): {
     category: string;
     isBonus?: boolean;
     checked?: boolean;
+    belonged?: boolean;
     type: string;
 };
 declare function remove(item: Item): {
@@ -27,6 +28,7 @@ declare function remove(item: Item): {
     category: string;
     isBonus?: boolean;
     checked?: boolean;
+    belonged?: boolean;
     type: string;
 };
 declare function update(item: Item): {
@@ -40,6 +42,7 @@ declare function update(item: Item): {
     category: string;
     isBonus?: boolean;
     checked?: boolean;
+    belonged?: boolean;
     type: string;
 };
 declare function checked({goodsId, checked}: {

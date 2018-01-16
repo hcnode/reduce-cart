@@ -186,12 +186,12 @@ var calculate = (saleType) => {
                 if (sale.type == SaleType.ANY) {
                     if (categoryType == interface_1.CategoryType.ALL) {
                         // 所有商品可以使用
-                        return Object.assign({}, result, { validItems: [...items] });
+                        return Object.assign({}, result, { validItems: items.map(item => (Object.assign({}, item, { belonged: true }))) });
                     }
                     else {
-                        var validItems = items.filter(item => (categoryType == interface_1.CategoryType.GOODS ? item.goods.id == value : item.category == value));
-                        return validItems.length > 0
-                            ? Object.assign({}, result, { validItems }) : null;
+                        var validItems = items.map(item => (categoryType == interface_1.CategoryType.GOODS ? item.goods.id == value : item.category == value) ? Object.assign({}, item, { belonged: true }) : item);
+                        return validItems.filter(item => item.belonged).length > 0
+                            ? Object.assign({}, result, { validItems: validItems.sort((a, b) => a.belonged ? b.belonged ? 0 : 1 : !b.belonged ? 0 : -1) }) : null;
                     }
                 }
                 else {
@@ -199,7 +199,7 @@ var calculate = (saleType) => {
                     if (categoryType == interface_1.CategoryType.ALL) {
                         // 所有商品可以使用
                         return grossTotal >= sale.rule.threshold
-                            ? Object.assign({}, result, { validItems: [...items] }) : null;
+                            ? Object.assign({}, result, { validItems: items.map(item => (Object.assign({}, item, { belonged: true }))) }) : null;
                     }
                     else {
                         // 仅限某些类目可以使用，TODO：以后可能还有其他限制？
@@ -207,13 +207,16 @@ var calculate = (saleType) => {
                         var grossTotalByCategory = items.reduce((total, item) => {
                             var match = value == (categoryType == interface_1.CategoryType.GOODS ? item.goods.id : item.category);
                             if (match) {
-                                validItems.push(item);
+                                validItems.push(Object.assign({}, item, { belonged: true }));
                                 total += item.goods.price * item.quantity;
+                            }
+                            else {
+                                validItems.push(item);
                             }
                             return total;
                         }, 0);
                         return grossTotalByCategory > sale.rule.threshold
-                            ? Object.assign({}, result, { validItems }) : null;
+                            ? Object.assign({}, result, { validItems: validItems.sort((a, b) => a.belonged ? b.belonged ? 0 : 1 : !b.belonged ? 0 : -1) }) : null;
                     }
                 }
             })

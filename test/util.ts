@@ -78,18 +78,19 @@ var reducerAssert = {
     activity.validSales.map(validSale => validSale.sale.id).should.be.deepEqual(["1", "3", "4"]);
     activity.validSales
       .find(validSale => validSale.sale.id == "3")
-      .validItems.map(item => item.goods.id)
+      .validItems.filter(item => item.belonged).map(item => item.goods.id)
       .should.be.deepEqual(["3"]);
     activity.validSales
       .find(validSale => validSale.sale.id == "4")
-      .validItems.map(item => item.goods.id)
+      .validItems.filter(item => item.belonged).map(item => item.goods.id)
       .should.be.deepEqual(["1", "2"]);
     state.grossTotal.should.be.equal(240);
     state.actualTotal.should.be.equal(230);
     activity.bestSale.sale.id.should.be.equal("1");
     activity.bestSale.actualTotal.should.be.equal(230);
     activity.bestSale.reduceAmount.should.be.equal(10);
-    activity.bestSale.validItems.map(item => item.goods.id).should.be.deepEqual(["1", "2", "3"]);
+    activity.bestSale.validItems
+      .filter(item => item.belonged).map(item => item.goods.id).should.be.deepEqual(["1", "2", "3"]);
     activity.defaultSale.should.deepEqual(activity.bestSale);
   },
   choose_sale : (state, validSales, bestSale) => {
