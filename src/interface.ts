@@ -99,7 +99,8 @@ export interface Api {
   ): ApiResult;
 
   checkedAll?(
-    ctx: any
+    ctx: any,
+    checked : boolean
   ): ApiResult;
 
   empty?(
