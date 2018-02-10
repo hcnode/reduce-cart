@@ -38,7 +38,7 @@ function checked({goodsId, checked}){
     };
 }
 
-function checkedAll({checked}){
+function checkedAll(checked){
     return {
         type: ACTION.CHECKEDALL,
         checked

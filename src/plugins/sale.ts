@@ -283,7 +283,7 @@ var calculate = (saleType): CartWithSaleFunc => {
     var preTotal = grossTotal;
     var reduceActivities = activities.map(activity => {
       var { sales, chosenSale, type } = activity;
-      if (sales[0].type == SaleType.CUSTOM)
+      if (sales[0] && sales[0].type == SaleType.CUSTOM)
         return {
           ...activity
         };
