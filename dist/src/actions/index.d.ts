@@ -53,9 +53,7 @@ declare function checked({goodsId, checked}: {
     goodsId: any;
     checked: any;
 };
-declare function checkedAll({checked}: {
-    checked: any;
-}): {
+declare function checkedAll(checked: any): {
     type: string;
     checked: any;
 };

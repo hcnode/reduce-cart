@@ -30,7 +30,7 @@ function checked({ goodsId, checked }) {
     };
 }
 exports.checked = checked;
-function checkedAll({ checked }) {
+function checkedAll(checked) {
     return {
         type: const_1.default.CHECKEDALL,
         checked

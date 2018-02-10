@@ -170,7 +170,7 @@ var calculate = (saleType) => {
         var preTotal = grossTotal;
         var reduceActivities = activities.map(activity => {
             var { sales, chosenSale, type } = activity;
-            if (sales[0].type == SaleType.CUSTOM)
+            if (sales[0] && sales[0].type == SaleType.CUSTOM)
                 return Object.assign({}, activity);
             var validSales = sales
                 .map((sale) => {
