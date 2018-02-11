@@ -278,9 +278,9 @@ var reducer = (saleType): CartWithSaleFunc => {
  */
 var calculate = (saleType): CartWithSaleFunc => {
   return (cart: CartWithSale): CartWithSale => {
-    var { grossTotal, activities, items } = cart;
+    var { grossTotal, activities, items, actualTotal } = cart;
     items = filter(items);
-    var preTotal = grossTotal;
+    var preTotal = actualTotal;
     var reduceActivities = activities.map(activity => {
       var { sales, chosenSale, type } = activity;
       if (sales[0] && sales[0].type == SaleType.CUSTOM)
