@@ -326,7 +326,7 @@ var calculate = (saleType): CartWithSaleFunc => {
             // 满减，todo：以后可能还有其他类型？
             if (categoryType == CategoryType.ALL) {
               // 所有商品可以使用
-              return grossTotal >= sale.rule.threshold
+              return preTotal >= sale.rule.threshold
                 ? {
                     ...result,
                     validItems: items.map(item => ({

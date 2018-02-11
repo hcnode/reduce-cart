@@ -198,7 +198,7 @@ var calculate = (saleType) => {
                     // 满减，todo：以后可能还有其他类型？
                     if (categoryType == interface_1.CategoryType.ALL) {
                         // 所有商品可以使用
-                        return grossTotal >= sale.rule.threshold
+                        return preTotal >= sale.rule.threshold
                             ? Object.assign({}, result, { validItems: items.map(item => (Object.assign({}, item, { belonged: true }))) }) : null;
                     }
                     else {
