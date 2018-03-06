@@ -1,6 +1,5 @@
 import { CategoryType, Item, Cart } from "../interface";
 import ActionType from "../actions/const";
-import sale from "../plugins/sale";
 // 商品增删改
 // 计算出可用活动、选择的活动、总金额、实际支付金额
 export default (
