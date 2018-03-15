@@ -143,7 +143,7 @@ var CONST = {
 export interface extActions extends Actions {
   init_sale: (data: Sale[], saleType: string) => redux.AnyAction;
   choose_sale: (data: string, saleType: string) => redux.AnyAction;
-  choose_none: (data: string, saleType: string) => redux.AnyAction;
+  choose_none: (saleType: string) => redux.AnyAction;
 }
 /**
  * 活动的action定义
@@ -217,14 +217,14 @@ var thunk = {
       }
     };
   },
-  chooseNone: (ctx, api: Api, saleType, sale) => {
+  chooseNone: (ctx, api: Api, saleType) => {
     return async dispatch => {
       var result = await api.chooseNone(ctx, { type: saleType });
       if (isOk(result)) {
         var activities = result.result;
         for (var activity of activities) {
           if (activity.type == saleType) {
-            dispatch(actions.chooseNone(activity.chooseId, saleType));
+            dispatch(actions.choose_none(saleType));
           }
         }
       } else {

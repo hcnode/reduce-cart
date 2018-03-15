@@ -128,7 +128,7 @@ export declare type CartWithSaleFunc = redux.Reducer<CartWithSale>;
 export interface extActions extends Actions {
     init_sale: (data: Sale[], saleType: string) => redux.AnyAction;
     choose_sale: (data: string, saleType: string) => redux.AnyAction;
-    choose_none: (data: string, saleType: string) => redux.AnyAction;
+    choose_none: (saleType: string) => redux.AnyAction;
 }
 /**
  * 活动的action定义
@@ -137,7 +137,7 @@ declare var actions: extActions;
 declare var thunk: {
     fetchSales: (ctx: any, api: Api, saleType: any) => (dispatch: any) => Promise<void>;
     chooseActivity: (ctx: any, api: Api, saleType: any, sale: any) => (dispatch: any) => Promise<void>;
-    chooseNone: (ctx: any, api: Api, saleType: any, sale: any) => (dispatch: any) => Promise<void>;
+    chooseNone: (ctx: any, api: Api, saleType: any) => (dispatch: any) => Promise<void>;
 };
 /**
  * 插件的定义
