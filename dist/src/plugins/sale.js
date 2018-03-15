@@ -31,8 +31,9 @@ function isOk(result) {
  * 活动相关的action的常量
  */
 var CONST = {
-    INIT_SALE: "INIT_SALE",
-    CHOOSE_SALE: "CHOOSE_SALE"
+    INIT_SALE: "CART_INIT_SALE",
+    CHOOSE_SALE: "CART_CHOOSE_SALE",
+    CHOOSE_NONE: "CART_CHOOSE_NONE"
 };
 /**
  * 活动的action定义
@@ -60,6 +61,12 @@ var actions = {
         return {
             type: CONST.CHOOSE_SALE,
             saleId,
+            saleType
+        };
+    },
+    choose_none: (saleType) => {
+        return {
+            type: CONST.CHOOSE_NONE,
             saleType
         };
     }
@@ -92,6 +99,22 @@ var thunk = {
                 for (var activity of activities) {
                     if (activity.type == saleType) {
                         dispatch(actions.choose_sale(activity.chooseId, saleType));
+                    }
+                }
+            }
+            else {
+                dispatch(index_1.throwError(result.code));
+            }
+        };
+    },
+    chooseNone: (ctx, api, saleType, sale) => {
+        return async (dispatch) => {
+            var result = await api.chooseNone(ctx, { type: saleType });
+            if (isOk(result)) {
+                var activities = result.result;
+                for (var activity of activities) {
+                    if (activity.type == saleType) {
+                        dispatch(actions.chooseNone(activity.chooseId, saleType));
                     }
                 }
             }
@@ -147,7 +170,17 @@ var reducer = (saleType) => {
             case CONST.CHOOSE_SALE:
                 var result = Object.assign({}, state, { activities: state.activities.map(activity => {
                         if (activity.type == saleType) {
-                            return Object.assign({}, activity, { chosenSale: activity.validSales.find(validSale => validSale.sale.id == action.saleId) });
+                            return Object.assign({}, activity, { chosenSale: activity.validSales.find(validSale => validSale.sale.id == action.saleId), chooseNone: false });
+                        }
+                        else {
+                            return activity;
+                        }
+                    }) });
+                return result;
+            case CONST.CHOOSE_NONE:
+                var result = Object.assign({}, state, { activities: state.activities.map(activity => {
+                        if (activity.type == saleType) {
+                            return Object.assign({}, activity, { chooseNone: true });
                         }
                         else {
                             return activity;
@@ -169,7 +202,7 @@ var calculate = (saleType) => {
         items = calculate_1.filter(items);
         var preTotal = grossTotal;
         var reduceActivities = activities.map(activity => {
-            var { sales, chosenSale, type } = activity;
+            var { sales, chosenSale, type, chooseNone } = activity;
             if (sales[0] && sales[0].type == SaleType.CUSTOM)
                 return Object.assign({}, activity);
             var validSales = sales
@@ -189,9 +222,10 @@ var calculate = (saleType) => {
                         return Object.assign({}, result, { validItems: items.map(item => (Object.assign({}, item, { belonged: true }))) });
                     }
                     else {
-                        var validItems = items.map(item => (categoryType == interface_1.CategoryType.GOODS ? item.goods.id == value : item.category == value) ? Object.assign({}, item, { belonged: true }) : item);
+                        var validItems = items.map(item => (categoryType == interface_1.CategoryType.GOODS ? item.goods.id == value : item.category == value)
+                            ? Object.assign({}, item, { belonged: true }) : item);
                         return validItems.filter(item => item.belonged).length > 0
-                            ? Object.assign({}, result, { validItems: validItems.sort((a, b) => a.belonged ? b.belonged ? 0 : 1 : !b.belonged ? 0 : -1) }) : null;
+                            ? Object.assign({}, result, { validItems: validItems.sort((a, b) => (a.belonged ? (b.belonged ? 0 : 1) : !b.belonged ? 0 : -1)) }) : null;
                     }
                 }
                 else {
@@ -216,7 +250,7 @@ var calculate = (saleType) => {
                             return total;
                         }, 0);
                         return grossTotalByCategory > sale.rule.threshold
-                            ? Object.assign({}, result, { validItems: validItems.sort((a, b) => a.belonged ? b.belonged ? 0 : 1 : !b.belonged ? 0 : -1) }) : null;
+                            ? Object.assign({}, result, { validItems: validItems.sort((a, b) => (a.belonged ? (b.belonged ? 0 : 1) : !b.belonged ? 0 : -1)) }) : null;
                     }
                 }
             })
@@ -236,7 +270,9 @@ var calculate = (saleType) => {
             // 默认活动是最佳活动
             var defaultSale = bestSale;
             // 优惠后总额优先数按需：选择的活动 -> 默认活动（最佳活动）-> 前一个活动总额
-            var actualTotal = chosenSale ? chosenSale.actualTotal : defaultSale ? defaultSale.actualTotal : preTotal;
+            var actualTotal = chooseNone
+                ? preTotal
+                : chosenSale ? chosenSale.actualTotal : defaultSale ? defaultSale.actualTotal : preTotal;
             var preTotal2 = preTotal;
             preTotal = actualTotal;
             return {
@@ -247,6 +283,7 @@ var calculate = (saleType) => {
                 chosenSale,
                 preTotal: preTotal2,
                 actualTotal,
+                chooseNone,
                 type
             };
         });

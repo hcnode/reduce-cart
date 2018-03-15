@@ -52,6 +52,15 @@ describe("reducer", () => {
     state = reducer(state, activityPlugin.actions.choose_sale("3", 'activity'));
     reducerAssert.choose_sale(state, validSales, bestSale);
   });
+  it("#action: choose_none", () => {
+    var activity = state.activities[0];
+    var { validSales, bestSale } = activity;
+    state = reducer(state, activityPlugin.actions.choose_none('activity'));
+    var activity = state.activities[0];
+    state.actualTotal.should.be.equal(240)
+    activity.chooseNone.should.be.equal(true)
+    state = reducer(state, activityPlugin.actions.choose_sale("3", 'activity'));
+  });
   it("#action: add", () => {
     state = reducer(
       state,
@@ -232,10 +241,10 @@ describe("reducer", () => {
   });
   
   it("#action: CHECKEDALL", () => {
-    state = reducer(state, actions.checkedAll({checked : false}));
+    state = reducer(state, actions.checkedAll(false));
     state.actualTotal.should.be.equal(0);
     state.grossTotal.should.be.equal(0);
-    state = reducer(state, actions.checkedAll({checked : true}));
+    state = reducer(state, actions.checkedAll(true));
     state.actualTotal.should.be.equal(400);
     state.grossTotal.should.be.equal(430);
   });

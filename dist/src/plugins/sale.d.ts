@@ -107,6 +107,13 @@ export interface Activity {
      * 实际支付
      */
     actualTotal?: number;
+    /**
+     * 手动不选择任何优惠
+     *
+     * @type {Boolean}
+     * @memberof Activity
+     */
+    chooseNone?: Boolean;
 }
 /**
  * 扩展购物车接口
@@ -121,6 +128,7 @@ export declare type CartWithSaleFunc = redux.Reducer<CartWithSale>;
 export interface extActions extends Actions {
     init_sale: (data: Sale[], saleType: string) => redux.AnyAction;
     choose_sale: (data: string, saleType: string) => redux.AnyAction;
+    choose_none: (data: string, saleType: string) => redux.AnyAction;
 }
 /**
  * 活动的action定义
@@ -129,6 +137,7 @@ declare var actions: extActions;
 declare var thunk: {
     fetchSales: (ctx: any, api: Api, saleType: any) => (dispatch: any) => Promise<void>;
     chooseActivity: (ctx: any, api: Api, saleType: any, sale: any) => (dispatch: any) => Promise<void>;
+    chooseNone: (ctx: any, api: Api, saleType: any, sale: any) => (dispatch: any) => Promise<void>;
 };
 /**
  * 插件的定义

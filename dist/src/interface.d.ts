@@ -87,6 +87,7 @@ export interface Api {
     removeChecked?(ctx: any): ApiResult;
     choose?(ctx: any, activity: any): ApiResult;
     getCartActivities?(ctx: any): ApiResult;
+    chooseNone?(ctx: any, activity: any): ApiResult;
 }
 /**
  * thunk接口

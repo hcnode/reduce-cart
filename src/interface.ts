@@ -120,6 +120,10 @@ export interface Api {
   getCartActivities?(
     ctx: any
   ): ApiResult;
+  chooseNone?(
+    ctx: any,
+    activity
+  ): ApiResult;
 }
 /**
  * thunk接口

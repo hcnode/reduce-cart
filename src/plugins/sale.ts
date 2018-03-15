@@ -109,6 +109,14 @@ export interface Activity {
    * 实际支付
    */
   actualTotal?: number;
+
+  /**
+   * 手动不选择任何优惠
+   *
+   * @type {Boolean}
+   * @memberof Activity
+   */
+  chooseNone?: Boolean;
 }
 /**
  * 扩展购物车接口
@@ -128,12 +136,14 @@ function isOk(result) {
  * 活动相关的action的常量
  */
 var CONST = {
-  INIT_SALE: "INIT_SALE",
-  CHOOSE_SALE: "CHOOSE_SALE"
+  INIT_SALE: "CART_INIT_SALE",
+  CHOOSE_SALE: "CART_CHOOSE_SALE",
+  CHOOSE_NONE: "CART_CHOOSE_NONE"
 };
 export interface extActions extends Actions {
   init_sale: (data: Sale[], saleType: string) => redux.AnyAction;
   choose_sale: (data: string, saleType: string) => redux.AnyAction;
+  choose_none: (data: string, saleType: string) => redux.AnyAction;
 }
 /**
  * 活动的action定义
@@ -166,6 +176,12 @@ var actions: extActions = {
       saleId,
       saleType
     };
+  },
+  choose_none: (saleType): redux.AnyAction => {
+    return {
+      type: CONST.CHOOSE_NONE,
+      saleType
+    };
   }
 };
 var thunk = {
@@ -194,6 +210,21 @@ var thunk = {
         for (var activity of activities) {
           if (activity.type == saleType) {
             dispatch(actions.choose_sale(activity.chooseId, saleType));
+          }
+        }
+      } else {
+        dispatch(throwError(result.code));
+      }
+    };
+  },
+  chooseNone: (ctx, api: Api, saleType, sale) => {
+    return async dispatch => {
+      var result = await api.chooseNone(ctx, { type: saleType });
+      if (isOk(result)) {
+        var activities = result.result;
+        for (var activity of activities) {
+          if (activity.type == saleType) {
+            dispatch(actions.chooseNone(activity.chooseId, saleType));
           }
         }
       } else {
@@ -257,7 +288,23 @@ var reducer = (saleType): CartWithSaleFunc => {
             if (activity.type == saleType) {
               return {
                 ...activity,
-                chosenSale: activity.validSales.find(validSale => validSale.sale.id == action.saleId)
+                chosenSale: activity.validSales.find(validSale => validSale.sale.id == action.saleId),
+                chooseNone: false
+              };
+            } else {
+              return activity;
+            }
+          })
+        };
+        return result;
+      case CONST.CHOOSE_NONE:
+        var result = {
+          ...state,
+          activities: state.activities.map(activity => {
+            if (activity.type == saleType) {
+              return {
+                ...activity,
+                chooseNone: true
               };
             } else {
               return activity;
@@ -282,7 +329,7 @@ var calculate = (saleType): CartWithSaleFunc => {
     items = filter(items);
     var preTotal = grossTotal;
     var reduceActivities = activities.map(activity => {
-      var { sales, chosenSale, type } = activity;
+      var { sales, chosenSale, type, chooseNone } = activity;
       if (sales[0] && sales[0].type == SaleType.CUSTOM)
         return {
           ...activity
@@ -305,20 +352,23 @@ var calculate = (saleType): CartWithSaleFunc => {
                 ...result,
                 validItems: items.map(item => ({
                   ...item,
-                  belonged : true
+                  belonged: true
                 }))
               };
             } else {
               var validItems = items.map(
-                item => (categoryType == CategoryType.GOODS ? item.goods.id == value : item.category == value) ? {
-                  ...item,
-                  belonged : true
-                } : item
+                item =>
+                  (categoryType == CategoryType.GOODS ? item.goods.id == value : item.category == value)
+                    ? {
+                        ...item,
+                        belonged: true
+                      }
+                    : item
               );
               return validItems.filter(item => item.belonged).length > 0
                 ? {
                     ...result,
-                    validItems : validItems.sort((a, b) => a.belonged ? b.belonged ? 0 : 1 : !b.belonged ? 0 : -1)
+                    validItems: validItems.sort((a, b) => (a.belonged ? (b.belonged ? 0 : 1) : !b.belonged ? 0 : -1))
                   }
                 : null;
             }
@@ -331,7 +381,7 @@ var calculate = (saleType): CartWithSaleFunc => {
                     ...result,
                     validItems: items.map(item => ({
                       ...item,
-                      belonged : true
+                      belonged: true
                     }))
                   }
                 : null;
@@ -341,9 +391,9 @@ var calculate = (saleType): CartWithSaleFunc => {
               var grossTotalByCategory = items.reduce((total, item) => {
                 var match = value == (categoryType == CategoryType.GOODS ? item.goods.id : item.category);
                 if (match) {
-                  validItems.push({...item, belonged : true});
+                  validItems.push({ ...item, belonged: true });
                   total += item.goods.price * item.quantity;
-                }else{
+                } else {
                   validItems.push(item);
                 }
                 return total;
@@ -351,7 +401,7 @@ var calculate = (saleType): CartWithSaleFunc => {
               return grossTotalByCategory > sale.rule.threshold
                 ? {
                     ...result,
-                    validItems : validItems.sort((a, b) => a.belonged ? b.belonged ? 0 : 1 : !b.belonged ? 0 : -1)
+                    validItems: validItems.sort((a, b) => (a.belonged ? (b.belonged ? 0 : 1) : !b.belonged ? 0 : -1))
                   }
                 : null;
             }
@@ -373,7 +423,9 @@ var calculate = (saleType): CartWithSaleFunc => {
       // 默认活动是最佳活动
       var defaultSale = bestSale;
       // 优惠后总额优先数按需：选择的活动 -> 默认活动（最佳活动）-> 前一个活动总额
-      var actualTotal = chosenSale ? chosenSale.actualTotal : defaultSale ? defaultSale.actualTotal : preTotal;
+      var actualTotal = chooseNone
+        ? preTotal
+        : chosenSale ? chosenSale.actualTotal : defaultSale ? defaultSale.actualTotal : preTotal;
       var preTotal2 = preTotal;
       preTotal = actualTotal;
       return {
@@ -384,6 +436,7 @@ var calculate = (saleType): CartWithSaleFunc => {
         chosenSale,
         preTotal: preTotal2,
         actualTotal,
+        chooseNone,
         type
       };
     });

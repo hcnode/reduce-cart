@@ -12,5 +12,6 @@ declare const Actions: {
     CHECKEDALL: string;
     EMPTY: string;
     REMOVECHECKED: string;
+    CHOOSE_NONE: string;
 };
 export default Actions;
