@@ -111,12 +111,7 @@ var thunk = {
         return async (dispatch) => {
             var result = await api.chooseNone(ctx, { type: saleType });
             if (isOk(result)) {
-                var activities = result.result;
-                for (var activity of activities) {
-                    if (activity.type == saleType) {
-                        dispatch(actions.choose_none(saleType));
-                    }
-                }
+                dispatch(actions.choose_none(saleType));
             }
             else {
                 dispatch(index_1.throwError(result.code));
