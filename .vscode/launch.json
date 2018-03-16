@@ -18,26 +18,8 @@
                 "ts,tsx",
                 "--colors"
             ],
-            "env": {
-                "TS_NODE_CACHE" : "true"
-            },
             "sourceMaps": true,
-            "cwd": "${workspaceRoot}",
-            "internalConsoleOptions": "openOnSessionStart"
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "DebugApp",
-            "program": "${workspaceRoot}/node_modules/ts-node/dist/_bin.js",
-            "stopOnEntry": false,
-            "args": [
-                "-r", "ts-node/register", 
-                "${workspaceRoot}/app_test/app.ts", "--no-cache"
-            ],
-            "sourceMaps": true,
-            "console": "internalConsole",
-            "internalConsoleOptions": "openOnSessionStart"
+            "cwd": "${workspaceRoot}"
         }
     ]
 }

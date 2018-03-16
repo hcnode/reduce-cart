@@ -38,7 +38,7 @@ state = reducer(state, actions.init_cart([
             price : 30
         },
         quantity : 2,
-        category : 'category1'
+        categories :[category1]
     }
 ]));
 // state == {grossTotal: 60, actualTotal : 60, items : [{id : '1', ...}]}
@@ -67,7 +67,7 @@ state = reducer(state, actions.add(
             price : 100
         },
         quantity : 1,
-        category : 'category1'
+        categories : ['category1']
     }
 ));
 // state == {grossTotal: 160, actualTotal : 150, items : [{id : '1', ...}, {id : '2', ...}], ...}
@@ -124,7 +124,7 @@ interface Item {
   /**
    * 所属类目
    */
-  category: string;
+  categories: [string];
 }
 // 活动的规则
 interface Sale {

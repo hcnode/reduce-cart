@@ -10,7 +10,9 @@ export enum CategoryType {
   // 限于某个商品
   GOODS = 2,
   // 所有商品
-  ALL = 3
+  ALL = 3,
+  // 活动类目
+  ACTIVITY_CATEGORY = 4
 }
 /**
  * 
@@ -42,7 +44,11 @@ export interface Item {
   /**
    * 所属类目
    */
-  category: string;
+  category?: string;
+  /**
+   * 所属类目
+   */
+  categories?: [string];
   /**
    * 送的
    */

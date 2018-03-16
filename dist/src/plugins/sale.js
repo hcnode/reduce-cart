@@ -217,7 +217,7 @@ var calculate = (saleType) => {
                         return Object.assign({}, result, { validItems: items.map(item => (Object.assign({}, item, { belonged: true }))) });
                     }
                     else {
-                        var validItems = items.map(item => (categoryType == interface_1.CategoryType.GOODS ? item.goods.id == value : item.category == value)
+                        var validItems = items.map(item => (categoryType == interface_1.CategoryType.GOODS ? item.goods.id == value : (item.categories || []).indexOf(value) > -1)
                             ? Object.assign({}, item, { belonged: true }) : item);
                         return validItems.filter(item => item.belonged).length > 0
                             ? Object.assign({}, result, { validItems: validItems.sort((a, b) => (a.belonged ? (b.belonged ? 0 : 1) : !b.belonged ? 0 : -1)) }) : null;
@@ -234,7 +234,7 @@ var calculate = (saleType) => {
                         // 仅限某些类目可以使用，TODO：以后可能还有其他限制？
                         var validItems = [];
                         var grossTotalByCategory = items.reduce((total, item) => {
-                            var match = value == (categoryType == interface_1.CategoryType.GOODS ? item.goods.id : item.category);
+                            var match = (categoryType == interface_1.CategoryType.GOODS && value == item.goods.id) || (item.categories || []).indexOf(value) > -1;
                             if (match) {
                                 validItems.push(Object.assign({}, item, { belonged: true }));
                                 total += item.goods.price * item.quantity;

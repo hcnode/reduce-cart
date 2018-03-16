@@ -10,7 +10,7 @@ var items : Item[] = [
         },
         quantity : 2,
         checked : true,
-        category : 'category1'
+        categories : ['category1']
     },
     {
         goods : {
@@ -20,7 +20,7 @@ var items : Item[] = [
         },
         quantity : 1,
         checked : true,
-        category : 'category1'
+        categories : ['category1']
     },
     {
         goods : {
@@ -30,7 +30,7 @@ var items : Item[] = [
         },
         quantity : 1,
         checked : true,
-        category : 'category2'
+        categories : ['category2']
     },
     {
         goods : {
@@ -40,7 +40,7 @@ var items : Item[] = [
         },
         quantity : 1,
         checked : false,
-        category : 'category1'
+        categories : ['category1']
     }
 ]
 var sales : Sale[] = [

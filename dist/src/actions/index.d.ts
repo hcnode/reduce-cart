@@ -11,7 +11,8 @@ declare function add(item: Item): {
         price: number;
     };
     quantity: number;
-    category: string;
+    category?: string;
+    categories?: [string];
     isBonus?: boolean;
     checked?: boolean;
     belonged?: boolean;
@@ -25,7 +26,8 @@ declare function remove(item: Item): {
         price: number;
     };
     quantity: number;
-    category: string;
+    category?: string;
+    categories?: [string];
     isBonus?: boolean;
     checked?: boolean;
     belonged?: boolean;
@@ -39,7 +41,8 @@ declare function update(item: Item): {
         price: number;
     };
     quantity: number;
-    category: string;
+    category?: string;
+    categories?: [string];
     isBonus?: boolean;
     checked?: boolean;
     belonged?: boolean;

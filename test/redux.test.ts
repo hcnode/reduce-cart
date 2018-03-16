@@ -61,7 +61,7 @@ describe("redux", () => {
           price: 80
         },
         quantity: 1,
-        category: "category3"
+        categories : ['category3']
       })
     );
     state = store.getState();
@@ -77,7 +77,7 @@ describe("redux", () => {
           price: 80
         },
         quantity: 1,
-        category: "category2"
+        categories : ['category2']
       })
     );
     state = store.getState();
@@ -92,7 +92,7 @@ describe("redux", () => {
           price: 100
         },
         quantity: 2,
-        category: "category1"
+        categories : ['category1']
       })
     );
     state = store.getState();

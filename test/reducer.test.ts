@@ -71,7 +71,7 @@ describe("reducer", () => {
           price: 80
         },
         quantity: 1,
-        category: "category3"
+        categories : ['category3']
       })
     );
     reducerAssert.add(state)
@@ -87,7 +87,7 @@ describe("reducer", () => {
           price: 80
         },
         quantity: 1,
-        category: "category2"
+        categories : ['category2']
       })
     );
     reducerAssert.remove(state)
@@ -102,7 +102,7 @@ describe("reducer", () => {
           price: 100
         },
         quantity: 2,
-        category: "category1"
+        categories : ['category1']
       })
     );
     reducerAssert.update(state)

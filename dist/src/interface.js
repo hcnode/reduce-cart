@@ -13,6 +13,8 @@ var CategoryType;
     CategoryType[CategoryType["GOODS"] = 2] = "GOODS";
     // 所有商品
     CategoryType[CategoryType["ALL"] = 3] = "ALL";
+    // 活动类目
+    CategoryType[CategoryType["ACTIVITY_CATEGORY"] = 4] = "ACTIVITY_CATEGORY";
 })(CategoryType = exports.CategoryType || (exports.CategoryType = {}));
 /**
  *

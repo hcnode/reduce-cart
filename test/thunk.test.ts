@@ -58,7 +58,7 @@ var activityApi: Api = {
 };
 var itemApi: Api = {
   fetch: async ctx => {
-    var goodsList = items.map(item => ({ ...item.goods, category: item.category }));
+    var goodsList = items.map(item => ({ ...item.goods, categories: item.categories }));
     var cartItems = [{ id: "1", quantity: 1 }, { id: "2", quantity: 2 }];
     return {
       code: 200,
@@ -67,7 +67,7 @@ var itemApi: Api = {
         return {
           goods,
           quantity: item.quantity,
-          category: goods.category,
+          categories: goods.categories,
           checked : true
         };
       })
@@ -109,7 +109,7 @@ describe("thunk", () => {
             price: 80
           },
           quantity: 5,
-          category: "category2"
+          categories: ['category2']
         },
         itemApi
       )
@@ -131,7 +131,7 @@ describe("thunk", () => {
             price: 30
           },
           quantity: 2,
-          category: "category1"
+          categories: ['category1']
         },
         itemApi
       )

@@ -8,6 +8,7 @@ export declare enum CategoryType {
     CATEGORY = 1,
     GOODS = 2,
     ALL = 3,
+    ACTIVITY_CATEGORY = 4,
 }
 /**
  *
@@ -40,7 +41,11 @@ export interface Item {
     /**
      * 所属类目
      */
-    category: string;
+    category?: string;
+    /**
+     * 所属类目
+     */
+    categories?: [string];
     /**
      * 送的
      */

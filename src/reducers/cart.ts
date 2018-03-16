@@ -30,13 +30,13 @@ export default (
                       price: action.goods && action.goods.price ? action.goods.price : item.goods.price
                     },
                     quantity: type == ActionType.UPDATE ? action.quantity : item.quantity + action.quantity,
-                    category: action.category ? action.category : item.category
+                    categories: action.categories || item.categories
                   }
                 : { ...item };
             })
           : [
               ...state.items,
-              { goods: action.goods, quantity: action.quantity, category: action.category, checked: true }
+              { goods: action.goods, quantity: action.quantity, categories: action.categories, checked: true }
             ]
       };
     case ActionType.REMOVE:

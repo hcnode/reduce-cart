@@ -353,7 +353,7 @@ var calculate = (saleType): CartWithSaleFunc => {
             } else {
               var validItems = items.map(
                 item =>
-                  (categoryType == CategoryType.GOODS ? item.goods.id == value : item.category == value)
+                  (categoryType == CategoryType.GOODS ? item.goods.id == value : (item.categories || [] as any).indexOf(value) > -1)
                     ? {
                         ...item,
                         belonged: true
@@ -384,7 +384,9 @@ var calculate = (saleType): CartWithSaleFunc => {
               // 仅限某些类目可以使用，TODO：以后可能还有其他限制？
               var validItems: Item[] = [];
               var grossTotalByCategory = items.reduce((total, item) => {
-                var match = value == (categoryType == CategoryType.GOODS ? item.goods.id : item.category);
+                var match =
+                  (categoryType == CategoryType.GOODS && value == item.goods.id) || (item.categories || [] as any).indexOf(value) > -1;
+
                 if (match) {
                   validItems.push({ ...item, belonged: true });
                   total += item.goods.price * item.quantity;

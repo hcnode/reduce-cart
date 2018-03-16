@@ -73,7 +73,7 @@ describe("muti-activities", () => {
           price: 100
         },
         quantity: 2,
-        category: "category1"
+        categories : ['category1']
       })
     );
     state.should.be.containDeep({
@@ -185,7 +185,7 @@ describe("muti-activities", () => {
                     price: 80
                   },
                   quantity: 1,
-                  category: "category2"
+                  categories : ['category2']
                 }
               }
             },
@@ -211,7 +211,7 @@ describe("muti-activities", () => {
                   price: 80
                 },
                 quantity: 1,
-                category: "category2"
+                categories : ['category2']
               }
             }
           },
@@ -233,7 +233,7 @@ describe("muti-activities", () => {
               price: 30
             },
             quantity: 2,
-            category: "category1"
+            categories : ['category1']
           },
           bonusItem: {
             goods: {
@@ -242,7 +242,7 @@ describe("muti-activities", () => {
               price: 80
             },
             quantity: 1,
-            category: "category2"
+            categories : ['category2']
           }
         }
       ]

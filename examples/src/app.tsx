@@ -72,7 +72,7 @@ class App extends React.Component<Props, State> {
                 price: 100
               },
               quantity: 1,
-              category: "category1"
+              categories: ["category1"]
             };
             this.props.addItem(newItem);
           }}
@@ -121,10 +121,10 @@ class App extends React.Component<Props, State> {
                   <td>
                     <input
                       onChange={e => {
-                        this.props.updateItem({ ...item, category: e.target.value });
+                        this.props.updateItem({ ...item, categories: [e.target.value] });
                       }}
                       type="text"
-                      value={item.category}
+                      value={item.categories[0]}
                       style={{ width: "150px" }}
                     />
                   </td>
