@@ -26,6 +26,7 @@ export interface Sale {
         desc?: string;
         operator?: number;
         thresholdUnit?: number;
+        bonusId?: string;
     };
     /**
      * 应用的商品，限定某个类目还是所有商品
@@ -47,6 +48,10 @@ export interface ValidSale {
      * 可使用的商品
      */
     validItems: Item[];
+    /**
+     * 不可使用的商品
+     */
+    unvalidItems: Item[];
     /**
      * 实际支付金额
      */
@@ -162,9 +167,18 @@ declare var thunk: {
     chooseActivity: (ctx: any, api: Api, saleType: any, sale: any) => (dispatch: any) => Promise<void>;
     chooseNone: (ctx: any, api: Api, saleType: any) => (dispatch: any) => Promise<void>;
 };
+declare function matchApply(item: Item, {categoryType, value}: {
+    categoryType: any;
+    value: any;
+}): boolean;
+declare function satisfyThreshold(preTotal: any, sale: Sale, items: Item[]): {
+    validItems: any[];
+    unvalidItems: any[];
+    satisfy: boolean;
+};
 /**
  * 插件的定义
  * @param type
  */
 export declare var plugin: (type: any) => SalePlugin<redux.Reducer<CartWithSale>, extActions>;
-export { thunk, actions as saleAction };
+export { thunk, actions as saleAction, matchApply, satisfyThreshold };

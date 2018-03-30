@@ -246,6 +246,7 @@ function matchApply(item, { categoryType, value }) {
         // 匹配类目
         (item.categories || []).indexOf(value) > -1);
 }
+exports.matchApply = matchApply;
 function satisfyThreshold(preTotal, sale, items) {
     var { operator = Operator.OPERATE_PRICE, thresholdUnit = ThresholdUnit.THRESHOLD_PRICE, amount, threshold } = sale.rule;
     var type = sale.type;
@@ -278,6 +279,7 @@ function satisfyThreshold(preTotal, sale, items) {
                     : ThresholdUnit.THRESHOLD_PRICE == thresholdUnit ? validActualTotal.totalPrice >= threshold : true))
     };
 }
+exports.satisfyThreshold = satisfyThreshold;
 /**
  * 计算相关数据
  * @param saleType

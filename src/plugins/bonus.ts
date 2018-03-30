@@ -17,6 +17,8 @@ import {
 } from "../../";
 import * as redux from "redux";
 import { filter } from "../reducers/calculate";
+import { Operator } from "../plugins/sale";
+import { ThresholdUnit, matchApply, satisfyThreshold } from "../plugins/sale";
 
 export default function() {
   return createCustomPlugin("bonus", (cart: CartWithSale) => {
@@ -28,12 +30,19 @@ export default function() {
       if (activity.type == "bonus") {
         var sales = activity.sales;
         for (const sale of sales) {
-          var { refItemId, bonusItem } = sale.apply.value;
-          var existItem = items.find(item => item.goods.id == refItemId);
-          if (existItem) {
+          var {
+            bonusId,
+            threshold,
+            amount,
+            operator = Operator.OPERATE_FREE,
+            thresholdUnit = ThresholdUnit.THRESHOLD_COUNT
+          } = sale.rule;
+          var { validItems, unvalidItems, satisfy } = satisfyThreshold(actualTotal, sale, items);
+          if (satisfy) {
             bonusItems.push({
-              refItem: existItem,
-              bonusItem
+              refItems: validItems,
+              bonusId,
+              count: amount
             });
           }
         }

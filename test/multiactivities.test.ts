@@ -19,6 +19,8 @@ require("should");
 import * as util from "./util";
 import { items, sales, vouchers } from "./data/data";
 import BonusPlugin from "../src/plugins/bonus";
+import { Operator } from "../src/plugins/sale";
+import { ThresholdUnit } from "../dist/src/plugins/sale";
 var reducer;
 var activityPlugin;
 var voucherPlugin;
@@ -73,7 +75,7 @@ describe("muti-activities", () => {
           price: 100
         },
         quantity: 2,
-        categories : ['category1']
+        categories: ["category1"]
       })
     );
     state.should.be.containDeep({
@@ -105,7 +107,7 @@ describe("muti-activities", () => {
     state.activities[0].validSales.length.should.be.equal(4);
     state.activities[1].validSales.length.should.be.equal(2);
   });
-  var shipFreePlugin: SalePlugin<CartWithSaleFunc, extActions>
+  var shipFreePlugin: SalePlugin<CartWithSaleFunc, extActions>;
   it("#plugin", () => {
     shipFreePlugin = util.shipFreePlugin();
 
@@ -169,55 +171,40 @@ describe("muti-activities", () => {
     var bonusPlugin: SalePlugin<CartWithSaleFunc, extActions> = BonusPlugin();
 
     reducer = createReducers([activityPlugin, voucherPlugin, shipFreePlugin, bonusPlugin]);
-    state = reducer(
-      state,
-      activityPlugin.actions.init_sale(
-        [
-          {
-            apply: {
-              categoryType: CategoryType.GOODS,
-              value: {
-                refItemId: "1",
-                bonusItem: {
-                  goods: {
-                    id: "3",
-                    name: "item3",
-                    price: 80
-                  },
-                  quantity: 1,
-                  categories : ['category2']
-                }
-              }
-            },
-            type: SaleType.CUSTOM
-          }
-        ],
-        "bonus"
-      )
-    );
-
+    var bonusActivity = [
+      {
+        rule: {
+          bonusId: "3",
+          threshold: 2,
+          amount: 1,
+          operator: Operator.OPERATE_FREE,
+          thresholdUnit: ThresholdUnit.THRESHOLD_COUNT
+        },
+        apply: {
+          categoryType: CategoryType.GOODS,
+          value: "1"
+        },
+        type: SaleType.CUSTOM
+      },
+      {
+        rule: {
+          bonusId: "9",
+          threshold: 290,
+          amount: 2,
+          operator: Operator.OPERATE_FREE,
+          thresholdUnit: ThresholdUnit.THRESHOLD_PRICE
+        },
+        apply: {
+          categoryType: CategoryType.ALL,
+          value: ""
+        },
+        type: SaleType.CUSTOM
+      }
+    ];
+    state = reducer(state, activityPlugin.actions.init_sale(bonusActivity, "bonus"));
     state.activities.length.should.be.equal(4);
     state.activities[3].should.be.containDeep({
-      sales: [
-        {
-          apply: {
-            categoryType: CategoryType.GOODS,
-            value: {
-              refItemId: "1",
-              bonusItem: {
-                goods: {
-                  id: "3",
-                  name: "item3",
-                  price: 80
-                },
-                quantity: 1,
-                categories : ['category2']
-              }
-            }
-          },
-          type: SaleType.CUSTOM
-        }
-      ],
+      sales: bonusActivity,
       defaultSale: null,
       chosenSale: null,
       bestSale: null,
@@ -226,24 +213,30 @@ describe("muti-activities", () => {
     state.should.be.containDeep({
       bonusItems: [
         {
-          refItem: {
+          refItems: [{
             goods: {
               id: "1",
               name: "item1",
               price: 30
             },
             quantity: 2,
-            categories : ['category1']
-          },
-          bonusItem: {
+            categories: ["category1"]
+          }],
+          count : 1,
+          bonusId: "3"
+        },
+        {
+          refItems: [{
             goods: {
-              id: "3",
-              name: "item3",
-              price: 80
+              id: "1",
+              name: "item1",
+              price: 30
             },
-            quantity: 1,
-            categories : ['category2']
-          }
+            quantity: 2,
+            categories: ["category1"]
+          }],
+          count : 2,
+          bonusId: "9"
         }
       ]
     });

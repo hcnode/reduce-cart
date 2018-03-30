@@ -28,6 +28,7 @@ export interface Sale {
     desc?: string;
     operator?: number;
     thresholdUnit?: number;
+    bonusId? : string
   };
   /**
    * 应用的商品，限定某个类目还是所有商品
@@ -526,4 +527,4 @@ export var plugin = (type): SalePlugin<CartWithSaleFunc, extActions> => {
   };
 };
 
-export { thunk, actions as saleAction };
+export { thunk, actions as saleAction, matchApply, satisfyThreshold };

@@ -2,6 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const _1 = require("../../");
 const calculate_1 = require("../reducers/calculate");
+const sale_1 = require("../plugins/sale");
+const sale_2 = require("../plugins/sale");
 function default_1() {
     return _1.createCustomPlugin("bonus", (cart) => {
         var { activities, actualTotal, items } = cart;
@@ -12,12 +14,13 @@ function default_1() {
             if (activity.type == "bonus") {
                 var sales = activity.sales;
                 for (const sale of sales) {
-                    var { refItemId, bonusItem } = sale.apply.value;
-                    var existItem = items.find(item => item.goods.id == refItemId);
-                    if (existItem) {
+                    var { bonusId, threshold, amount, operator = sale_1.Operator.OPERATE_FREE, thresholdUnit = sale_2.ThresholdUnit.THRESHOLD_COUNT } = sale.rule;
+                    var { validItems, unvalidItems, satisfy } = sale_2.satisfyThreshold(actualTotal, sale, items);
+                    if (satisfy) {
                         bonusItems.push({
-                            refItem: existItem,
-                            bonusItem
+                            refItems: validItems,
+                            bonusId,
+                            count: amount
                         });
                     }
                 }
