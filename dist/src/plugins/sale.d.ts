@@ -148,6 +148,12 @@ export interface Activity {
  */
 export interface CartWithSale extends Cart {
     activities: Activity[];
+    bonusItems?: {
+        refItems: Item[];
+        count: number;
+        bonusId: string;
+        bonusItem?: Item;
+    }[];
 }
 /**
  * 购物车接口函数

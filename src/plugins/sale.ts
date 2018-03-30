@@ -156,7 +156,7 @@ export interface CartWithSale extends Cart {
     count : number
     bonusId : string
     bonusItem? : Item
-  }
+  }[]
 }
 /**
  * 购物车接口函数
