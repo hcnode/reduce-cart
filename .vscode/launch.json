@@ -12,10 +12,6 @@
             "args": [
                 "-u",
                 "tdd",
-                "--require",
-                "ts-node/register",
-                "--watch-extensions",
-                "ts,tsx",
                 "--colors"
             ],
             "sourceMaps": true,

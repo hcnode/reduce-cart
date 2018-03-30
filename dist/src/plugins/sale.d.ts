@@ -24,6 +24,8 @@ export interface Sale {
         threshold: number;
         amount: number;
         desc?: string;
+        operator?: number;
+        thresholdUnit?: number;
     };
     /**
      * 应用的商品，限定某个类目还是所有商品
@@ -53,6 +55,7 @@ export interface ValidSale {
      * 优惠的金额
      */
     reduceAmount: number;
+    subReduceAmountTotal?: number;
 }
 /**
  * 优惠类型
@@ -72,6 +75,22 @@ export declare enum SaleType {
     CUSTOM = 9,
 }
 /**
+ * 折扣类型
+ */
+export declare enum Operator {
+    OPERATE_PRICE = 1,
+    OPERATE_COUNT = 2,
+    OPERATE_DISCOUNT = 3,
+    OPERATE_FREE = 4,
+}
+/**
+ * 门槛的单位
+ */
+export declare enum ThresholdUnit {
+    THRESHOLD_PRICE = 1,
+    THRESHOLD_COUNT = 2,
+}
+/**
  * 活动类型
  */
 export interface Activity {
@@ -83,6 +102,10 @@ export interface Activity {
      * 当前购物车可用的活动
      */
     validSales: ValidSale[];
+    /**
+     * 当前购物车不可用的活动
+     */
+    unvalidSales: ValidSale[];
     /**
      * 选择的活动
      */

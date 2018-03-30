@@ -26,6 +26,8 @@ export interface Sale {
     threshold: number;
     amount: number;
     desc?: string;
+    operator?: number;
+    thresholdUnit?: number;
   };
   /**
    * 应用的商品，限定某个类目还是所有商品
@@ -48,6 +50,10 @@ export interface ValidSale {
    */
   validItems: Item[];
   /**
+   * 不可使用的商品
+   */
+  unvalidItems: Item[];
+  /**
    * 实际支付金额
    */
   actualTotal: number;
@@ -55,6 +61,7 @@ export interface ValidSale {
    * 优惠的金额
    */
   reduceAmount: number;
+  subReduceAmountTotal?: number;
 }
 /**
  * 优惠类型
@@ -74,6 +81,22 @@ export enum SaleType {
   CUSTOM = 9
 }
 /**
+ * 折扣类型
+ */
+export enum Operator {
+  OPERATE_PRICE = 1,
+  OPERATE_COUNT = 2,
+  OPERATE_DISCOUNT = 3,
+  OPERATE_FREE = 4
+}
+/**
+ * 门槛的单位
+ */
+export enum ThresholdUnit {
+  THRESHOLD_PRICE = 1,
+  THRESHOLD_COUNT = 2
+}
+/**
  * 活动类型
  */
 export interface Activity {
@@ -85,6 +108,10 @@ export interface Activity {
    * 当前购物车可用的活动
    */
   validSales: ValidSale[];
+  /**
+   * 当前购物车不可用的活动
+   */
+  unvalidSales: ValidSale[];
   /**
    * 选择的活动
    */
@@ -256,6 +283,7 @@ var reducer = (saleType): CartWithSaleFunc => {
                     sales: action.sales,
                     type: saleType,
                     validSales: [],
+                    unvalidSales: [],
                     chosenSale: null,
                     defaultSale: null,
                     bestSale: null
@@ -269,6 +297,7 @@ var reducer = (saleType): CartWithSaleFunc => {
                   sales: action.sales,
                   type: saleType,
                   validSales: [],
+                  unvalidSales: [],
                   chosenSale: null,
                   defaultSale: null,
                   bestSale: null
@@ -314,6 +343,101 @@ var reducer = (saleType): CartWithSaleFunc => {
     }
   };
 };
+function calculateActualTotal(preTotal, validSale: ValidSale) {
+  var {
+    operator = Operator.OPERATE_PRICE,
+    thresholdUnit = ThresholdUnit.THRESHOLD_PRICE,
+    amount
+  } = validSale.sale.rule;
+  var actualTotal = preTotal;
+  var reduceAmount = 0;
+  var validItem = validSale.validItems.filter(item => item.belonged);
+  var validActualTotal = validItem.reduce((total, item) => {
+    return total + item.quantity * item.goods.price;
+  }, 0);
+  switch (operator) {
+    case Operator.OPERATE_PRICE:
+      reduceAmount = amount;
+      actualTotal = preTotal - amount;
+      break;
+    case Operator.OPERATE_DISCOUNT:
+      reduceAmount = validActualTotal * amount / 100;
+      actualTotal = preTotal - reduceAmount;
+      break;
+  }
+  var subReduceAmountTotal = 0;
+  var validItems = validItem.map((item, i) => {
+    var subtotal = item.quantity * item.goods.price;
+    var subReduceAmount =
+      validItem.length - 1 != i ? reduceAmount * (subtotal / validActualTotal) : reduceAmount - subReduceAmountTotal;
+    subReduceAmountTotal += subReduceAmount;
+    return {
+      ...item,
+      subtotal: subtotal - subReduceAmount,
+      subReduceAmount
+    };
+  });
+  return {
+    ...validSale,
+    validItems,
+    actualTotal,
+    reduceAmount,
+    subReduceAmountTotal
+  };
+}
+function matchApply(item: Item, { categoryType, value }) {
+  return (
+    // 匹配所有商品
+    categoryType == CategoryType.ALL ||
+    // 匹配单个商品
+    (categoryType == CategoryType.GOODS && value == item.goods.id) ||
+    // 匹配类目
+    (item.categories || ([] as any)).indexOf(value) > -1
+  );
+}
+function satisfyThreshold(preTotal, sale: Sale, items: Item[]) {
+  var {
+    operator = Operator.OPERATE_PRICE,
+    thresholdUnit = ThresholdUnit.THRESHOLD_PRICE,
+    amount,
+    threshold
+  } = sale.rule;
+  var type = sale.type;
+  var isNoThreshold = sale.type == SaleType.ANY;
+  var actualTotal = preTotal;
+  var reduceAmount = 0;
+  var validItems = [];
+  var unvalidItems = [];
+  var validActualTotal = items.reduce(
+    (total, item) => {
+      var isMatch = matchApply(item, sale.apply);
+      if (isMatch) {
+        validItems.push({
+          ...item,
+          belonged: true
+        });
+        return {
+          totalPrice: total.totalPrice + item.quantity * item.goods.price,
+          totalCount: total.totalCount + item.quantity
+        };
+      } else {
+        unvalidItems.push(item);
+        return total;
+      }
+    },
+    { totalPrice: 0, totalCount: 0 }
+  );
+  return {
+    validItems,
+    unvalidItems,
+    satisfy:
+      validItems.length > 0 &&
+      (isNoThreshold ||
+        (ThresholdUnit.THRESHOLD_COUNT == thresholdUnit
+          ? validActualTotal.totalCount >= threshold
+          : ThresholdUnit.THRESHOLD_PRICE == thresholdUnit ? validActualTotal.totalPrice >= threshold : true))
+  };
+}
 /**
  * 计算相关数据
  * @param saleType
@@ -321,6 +445,7 @@ var reducer = (saleType): CartWithSaleFunc => {
 var calculate = (saleType): CartWithSaleFunc => {
   return (cart: CartWithSale): CartWithSale => {
     var { grossTotal, activities, items } = cart;
+
     items = filter(items);
     var preTotal = grossTotal;
     var reduceActivities = activities.map(activity => {
@@ -329,82 +454,22 @@ var calculate = (saleType): CartWithSaleFunc => {
         return {
           ...activity
         };
-      var validSales: ValidSale[] = sales
-        .map((sale: Sale) => {
-          var categoryType = sale.apply.categoryType;
-          var reduceAmount = sale.rule.amount;
-          var value = sale.apply.value;
-          var result = {
-            sale,
-            actualTotal: Math.max(preTotal - reduceAmount, 0),
-            reduceAmount
-          };
-          // 直减
-          if (sale.type == SaleType.ANY) {
-            if (categoryType == CategoryType.ALL) {
-              // 所有商品可以使用
-              return {
-                ...result,
-                validItems: items.map(item => ({
-                  ...item,
-                  belonged: true
-                }))
-              };
-            } else {
-              var validItems = items.map(
-                item =>
-                  (categoryType == CategoryType.GOODS ? item.goods.id == value : (item.categories || [] as any).indexOf(value) > -1)
-                    ? {
-                        ...item,
-                        belonged: true
-                      }
-                    : item
-              );
-              return validItems.filter(item => item.belonged).length > 0
-                ? {
-                    ...result,
-                    validItems: validItems.sort((a, b) => (a.belonged ? (b.belonged ? 0 : 1) : !b.belonged ? 0 : -1))
-                  }
-                : null;
-            }
-          } else {
-            // 满减，todo：以后可能还有其他类型？
-            if (categoryType == CategoryType.ALL) {
-              // 所有商品可以使用
-              return preTotal >= sale.rule.threshold
-                ? {
-                    ...result,
-                    validItems: items.map(item => ({
-                      ...item,
-                      belonged: true
-                    }))
-                  }
-                : null;
-            } else {
-              // 仅限某些类目可以使用，TODO：以后可能还有其他限制？
-              var validItems: Item[] = [];
-              var grossTotalByCategory = items.reduce((total, item) => {
-                var match =
-                  (categoryType == CategoryType.GOODS && value == item.goods.id) || (item.categories || [] as any).indexOf(value) > -1;
+      var validAndNotSales: any[] = sales.map((sale: Sale) => {
+        var categoryType = sale.apply.categoryType;
+        var reduceAmount = sale.rule.amount;
+        var value = sale.apply.value;
+        var { validItems, unvalidItems, satisfy } = satisfyThreshold(preTotal, sale, items);
 
-                if (match) {
-                  validItems.push({ ...item, belonged: true });
-                  total += item.goods.price * item.quantity;
-                } else {
-                  validItems.push(item);
-                }
-                return total;
-              }, 0);
-              return grossTotalByCategory > sale.rule.threshold
-                ? {
-                    ...result,
-                    validItems: validItems.sort((a, b) => (a.belonged ? (b.belonged ? 0 : 1) : !b.belonged ? 0 : -1))
-                  }
-                : null;
-            }
-          }
-        })
-        .filter(item => item);
+        var result: any = {
+          sale,
+          validItems,
+          unvalidItems,
+          satisfy
+        };
+        return satisfy ? calculateActualTotal(preTotal, result) : result;
+      });
+      var validSales: ValidSale[] = validAndNotSales.filter(item => item.satisfy);
+      var unvalidSales: ValidSale[] = validAndNotSales.filter(item => !item.satisfy);
       // 最佳活动
       var bestSale: ValidSale = validSales.reduce((selectedSale: ValidSale, validSale: ValidSale) => {
         selectedSale = selectedSale || validSale;
@@ -428,6 +493,7 @@ var calculate = (saleType): CartWithSaleFunc => {
       return {
         sales,
         validSales,
+        unvalidSales,
         bestSale,
         defaultSale,
         chosenSale,

@@ -1,3 +1,4 @@
+require("ts-node/register");
 import {
   createReducers,
   ActivityPlugin,
@@ -13,7 +14,7 @@ import {
   CONST
 } from "../";
 require("should");
-import { items, sales } from "./data/data";
+import { items, sales, extraSales } from "./data/data";
 import {reducerAssert} from './util'
 var reducer;
 var activityPlugin;
@@ -260,5 +261,19 @@ describe("reducer", () => {
     state.actualTotal.should.be.equal(0);
     state.grossTotal.should.be.equal(0);
     state.items.length.should.be.equal(0);
+  });
+  it("#extraSale", () => {
+    state = reducer(state, actions.init_cart(items));
+    state = reducer(state, activityPlugin.actions.init_sale(extraSales, 'activity'));
+    var activity = state.activities[0];
+    activity.validSales.length.should.be.equal(1);
+    activity.validSales[0].sale.id.should.be.equal('1');
+    activity.unvalidSales.length.should.be.equal(1);
+    activity.unvalidSales[0].sale.id.should.be.equal('2');
+    activity.validSales[0].should.be.equal(activity.bestSale);
+    activity.validSales[0].validItems.length.should.be.equal(3);
+    activity.validSales[0].unvalidItems.length.should.be.equal(0);
+    activity.unvalidSales[0].validItems.length.should.be.equal(2);
+    activity.unvalidSales[0].unvalidItems.length.should.be.equal(1);
   });
 });
