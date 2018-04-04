@@ -287,11 +287,12 @@ var reducer = (saleType): CartWithSaleFunc => {
               state.activities.map(activity => {
                 if (activity.type == saleType)
                   return {
+                    ...exitsSale,
                     sales: action.sales,
                     type: saleType,
                     validSales: [],
                     unvalidSales: [],
-                    chosenSale: null,
+                    // chosenSale: null,
                     defaultSale: null,
                     bestSale: null
                   };
