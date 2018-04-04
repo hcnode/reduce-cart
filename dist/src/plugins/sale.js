@@ -156,15 +156,9 @@ var reducer = (saleType) => {
                         ? // 如果已存在则替换
                             state.activities.map(activity => {
                                 if (activity.type == saleType)
-                                    return {
-                                        sales: action.sales,
-                                        type: saleType,
-                                        validSales: [],
-                                        unvalidSales: [],
-                                        chosenSale: null,
-                                        defaultSale: null,
-                                        bestSale: null
-                                    };
+                                    return Object.assign({}, exitsSale, { sales: action.sales, type: saleType, validSales: [], unvalidSales: [], 
+                                        // chosenSale: null,
+                                        defaultSale: null, bestSale: null });
                                 else
                                     return activity;
                             })
