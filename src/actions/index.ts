@@ -56,7 +56,7 @@ function removeChecked(){
 }
 function throwError(code : number){
     return {
-        type: ACTION.UPDATE,
+        type: ACTION.ERROR,
         code
     };
 }
