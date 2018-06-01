@@ -469,13 +469,426 @@ module.exports = invariant;
 
 /***/ }),
 /* 5 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-throw new Error("Module build failed: Error: ENOENT: no such file or directory, open 'D:\\develop\\reduce-cart\\dist\\index.js'");
+
+function __export(m) {
+    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+}
+Object.defineProperty(exports, "__esModule", { value: true });
+const sale_1 = __webpack_require__(6);
+exports.ActivityPlugin = sale_1.plugin;
+const cart_1 = __webpack_require__(78);
+const calculate_1 = __webpack_require__(16);
+const const_1 = __webpack_require__(15);
+exports.CONST = const_1.default;
+const actions = __webpack_require__(14);
+exports.actions = actions;
+const bonus_1 = __webpack_require__(79);
+exports.bonusPlugin = bonus_1.default;
+const shipFree_1 = __webpack_require__(80);
+exports.shipFreePlugin = shipFree_1.default;
+var combineCalculate = extCalculates => {
+    var allCalculates = [calculate_1.default].concat(extCalculates);
+    return state => {
+        var result = allCalculates.reduce((preState, calculate) => {
+            var result = calculate(preState);
+            return result;
+        }, state);
+        return result;
+    };
+};
+var combineReducers = (extReducers, calculate) => {
+    var allReducers = [cart_1.default].concat(extReducers);
+    return (state, action) => {
+        return calculate(allReducers.reduce((preState, reducer) => {
+            return reducer(preState, action);
+        }, state));
+    };
+};
+exports.createReducers = (plugins) => {
+    var calculate = combineCalculate(plugins.map(plugin => plugin.calculate));
+    var reducer = combineReducers(plugins.map(plugin => plugin.reducer), calculate);
+    return reducer;
+};
+exports.createCustomPlugin = (saleType, calculate) => {
+    var customPlugin = sale_1.plugin(saleType);
+    customPlugin.calculate = calculate;
+    return customPlugin;
+};
+__export(__webpack_require__(6));
+__export(__webpack_require__(34));
+__export(__webpack_require__(81));
+var sale_2 = __webpack_require__(6);
+exports.activityThunk = sale_2.thunk;
+
 
 /***/ }),
 /* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * 通用中间件定义
+ */
+const interface_1 = __webpack_require__(34);
+const index_1 = __webpack_require__(14);
+const calculate_1 = __webpack_require__(16);
+/**
+ * 优惠类型
+ */
+var SaleType;
+(function (SaleType) {
+    /**
+     * 直减
+     */
+    SaleType[SaleType["ANY"] = 1] = "ANY";
+    /**
+     * 满减
+     */
+    SaleType[SaleType["THRESHOLD"] = 2] = "THRESHOLD";
+    /**
+     * 自定义
+     */
+    SaleType[SaleType["CUSTOM"] = 9] = "CUSTOM";
+})(SaleType = exports.SaleType || (exports.SaleType = {}));
+/**
+ * 折扣类型
+ */
+var Operator;
+(function (Operator) {
+    Operator[Operator["OPERATE_PRICE"] = 1] = "OPERATE_PRICE";
+    Operator[Operator["OPERATE_COUNT"] = 2] = "OPERATE_COUNT";
+    Operator[Operator["OPERATE_DISCOUNT"] = 3] = "OPERATE_DISCOUNT";
+    Operator[Operator["OPERATE_FREE"] = 4] = "OPERATE_FREE";
+})(Operator = exports.Operator || (exports.Operator = {}));
+/**
+ * 门槛的单位
+ */
+var ThresholdUnit;
+(function (ThresholdUnit) {
+    ThresholdUnit[ThresholdUnit["THRESHOLD_PRICE"] = 1] = "THRESHOLD_PRICE";
+    ThresholdUnit[ThresholdUnit["THRESHOLD_COUNT"] = 2] = "THRESHOLD_COUNT";
+})(ThresholdUnit = exports.ThresholdUnit || (exports.ThresholdUnit = {}));
+function isOk(result) {
+    return result.code == 200;
+}
+/**
+ * 活动相关的action的常量
+ */
+var CONST = {
+    INIT_SALE: "CART_INIT_SALE",
+    CHOOSE_SALE: "CART_CHOOSE_SALE",
+    CHOOSE_NONE: "CART_CHOOSE_NONE"
+};
+/**
+ * 活动的action定义
+ */
+var actions = {
+    init_sale: (sales = [], saleType) => {
+        sales = sales.map(item => (Object.assign({}, item, { rule: item.rule || {
+                threshold: -1,
+                amount: 0
+            }, 
+            // 不传apply默认是全场优惠
+            apply: item.apply || {
+                categoryType: interface_1.CategoryType.ALL,
+                value: ""
+            }, 
+            // 默认是满减
+            type: item.type || SaleType.THRESHOLD })));
+        return {
+            type: CONST.INIT_SALE,
+            sales,
+            saleType
+        };
+    },
+    choose_sale: (saleId, saleType) => {
+        return {
+            type: CONST.CHOOSE_SALE,
+            saleId,
+            saleType
+        };
+    },
+    choose_none: (saleType) => {
+        return {
+            type: CONST.CHOOSE_NONE,
+            saleType
+        };
+    }
+};
+exports.saleAction = actions;
+var thunk = {
+    fetchSales: (ctx, api, saleType) => {
+        return async (dispatch) => {
+            var result = await api.fetch(ctx);
+            var cartActivitiesResult = await api.getCartActivities(ctx);
+            if (isOk(result)) {
+                dispatch(actions.init_sale(result.result, saleType));
+                var cartActivities = cartActivitiesResult.result;
+                for (var activity of cartActivities) {
+                    if (activity.type == saleType && activity.chooseId) {
+                        dispatch(actions.choose_sale(activity.chooseId, saleType));
+                    }
+                }
+            }
+            else {
+                dispatch(index_1.throwError(result.code));
+            }
+        };
+    },
+    chooseActivity: (ctx, api, saleType, sale) => {
+        return async (dispatch) => {
+            var result = await api.choose(ctx, { type: saleType, chooseId: sale.id });
+            if (isOk(result)) {
+                var activities = result.result;
+                for (var activity of activities) {
+                    if (activity.type == saleType) {
+                        dispatch(actions.choose_sale(activity.chooseId, saleType));
+                    }
+                }
+            }
+            else {
+                dispatch(index_1.throwError(result.code));
+            }
+        };
+    },
+    chooseNone: (ctx, api, saleType) => {
+        return async (dispatch) => {
+            var result = await api.chooseNone(ctx, { type: saleType });
+            if (isOk(result)) {
+                dispatch(actions.choose_none(saleType));
+            }
+            else {
+                dispatch(index_1.throwError(result.code));
+            }
+        };
+    }
+};
+exports.thunk = thunk;
+/**
+ * 定义reducer
+ */
+var reducer = (saleType) => {
+    return (state, action) => {
+        // 初始化数据
+        state = Object.assign({}, state, { activities: state.activities || [] });
+        if (action.saleType != saleType) {
+            return state;
+        }
+        // 已存在的活动
+        var exitsSale = state.activities.find(activity => activity.type == action.saleType);
+        switch (action.type) {
+            case CONST.INIT_SALE:
+                return Object.assign({}, state, { activities: exitsSale
+                        ? // 如果已存在则替换
+                            state.activities.map(activity => {
+                                if (activity.type == saleType)
+                                    return Object.assign({}, exitsSale, { sales: action.sales, type: saleType, validSales: [], unvalidSales: [], 
+                                        // chosenSale: null,
+                                        defaultSale: null, bestSale: null });
+                                else
+                                    return activity;
+                            })
+                        : // 否则添加到最后
+                            [
+                                ...state.activities,
+                                {
+                                    sales: action.sales,
+                                    type: saleType,
+                                    validSales: [],
+                                    unvalidSales: [],
+                                    chosenSale: null,
+                                    defaultSale: null,
+                                    bestSale: null
+                                }
+                            ] });
+            // 选择活动
+            case CONST.CHOOSE_SALE:
+                var result = Object.assign({}, state, { activities: state.activities.map(activity => {
+                        if (activity.type == saleType) {
+                            return Object.assign({}, activity, { chosenSale: activity.validSales.find(validSale => validSale.sale.id == action.saleId), chooseNone: false });
+                        }
+                        else {
+                            return activity;
+                        }
+                    }) });
+                return result;
+            case CONST.CHOOSE_NONE:
+                var result = Object.assign({}, state, { activities: state.activities.map(activity => {
+                        if (activity.type == saleType) {
+                            return Object.assign({}, activity, { chooseNone: true });
+                        }
+                        else {
+                            return activity;
+                        }
+                    }) });
+                return result;
+            default:
+                return Object.assign({}, state);
+        }
+    };
+};
+function calculateActualTotal(preTotal, validSale) {
+    var { operator = Operator.OPERATE_PRICE, thresholdUnit = ThresholdUnit.THRESHOLD_PRICE, amount } = validSale.sale.rule;
+    var actualTotal = preTotal;
+    var reduceAmount = 0;
+    var validItem = validSale.validItems.filter(item => item.belonged);
+    var validActualTotal = validItem.reduce((total, item) => {
+        return total + item.quantity * item.goods.price;
+    }, 0);
+    switch (operator) {
+        case Operator.OPERATE_PRICE:
+            reduceAmount = amount;
+            actualTotal = preTotal - amount;
+            break;
+        case Operator.OPERATE_DISCOUNT:
+            reduceAmount = validActualTotal * amount / 100;
+            actualTotal = preTotal - reduceAmount;
+            break;
+    }
+    var subReduceAmountTotal = 0;
+    var validItems = validItem.map((item, i) => {
+        var subtotal = item.quantity * item.goods.price;
+        var subReduceAmount = validItem.length - 1 != i ? reduceAmount * (subtotal / validActualTotal) : reduceAmount - subReduceAmountTotal;
+        subReduceAmountTotal += subReduceAmount;
+        return Object.assign({}, item, { subtotal: subtotal - subReduceAmount, subReduceAmount });
+    });
+    return Object.assign({}, validSale, { validItems,
+        actualTotal,
+        reduceAmount,
+        subReduceAmountTotal });
+}
+function matchApply(item, { categoryType, value }) {
+    return (
+    // 匹配所有商品
+    categoryType == interface_1.CategoryType.ALL ||
+        // 匹配单个商品
+        (categoryType == interface_1.CategoryType.GOODS && value == item.goods.id) ||
+        // 匹配类目
+        (item.categories || []).indexOf(value) > -1);
+}
+exports.matchApply = matchApply;
+function satisfyThreshold(preTotal, sale, items) {
+    var { operator = Operator.OPERATE_PRICE, thresholdUnit = ThresholdUnit.THRESHOLD_PRICE, amount, threshold } = sale.rule;
+    var type = sale.type;
+    var isNoThreshold = sale.type == SaleType.ANY;
+    var actualTotal = preTotal;
+    var reduceAmount = 0;
+    var validItems = [];
+    var unvalidItems = [];
+    var validActualTotal = items.reduce((total, item) => {
+        var isMatch = matchApply(item, sale.apply);
+        if (isMatch) {
+            validItems.push(Object.assign({}, item, { belonged: true }));
+            return {
+                totalPrice: total.totalPrice + item.quantity * item.goods.price,
+                totalCount: total.totalCount + item.quantity
+            };
+        }
+        else {
+            unvalidItems.push(item);
+            return total;
+        }
+    }, { totalPrice: 0, totalCount: 0 });
+    return {
+        validItems,
+        unvalidItems,
+        satisfy: validItems.length > 0 &&
+            (isNoThreshold ||
+                (ThresholdUnit.THRESHOLD_COUNT == thresholdUnit
+                    ? validActualTotal.totalCount >= threshold
+                    : ThresholdUnit.THRESHOLD_PRICE == thresholdUnit ? validActualTotal.totalPrice >= threshold : true))
+    };
+}
+exports.satisfyThreshold = satisfyThreshold;
+/**
+ * 计算相关数据
+ * @param saleType
+ */
+var calculate = (saleType) => {
+    return (cart) => {
+        var { grossTotal, activities, items } = cart;
+        items = calculate_1.filter(items);
+        var preTotal = grossTotal;
+        var reduceActivities = activities.map(activity => {
+            var { sales, chosenSale, type, chooseNone } = activity;
+            if (sales[0] && sales[0].type == SaleType.CUSTOM)
+                return Object.assign({}, activity);
+            var validAndNotSales = sales.map((sale) => {
+                var categoryType = sale.apply.categoryType;
+                var reduceAmount = sale.rule.amount;
+                var value = sale.apply.value;
+                var { validItems, unvalidItems, satisfy } = satisfyThreshold(preTotal, sale, items);
+                var result = {
+                    sale,
+                    validItems,
+                    unvalidItems,
+                    satisfy
+                };
+                return satisfy ? calculateActualTotal(preTotal, result) : result;
+            });
+            var validSales = validAndNotSales.filter(item => item.satisfy);
+            var unvalidSales = validAndNotSales.filter(item => !item.satisfy);
+            // 最佳活动
+            var bestSale = validSales.reduce((selectedSale, validSale) => {
+                selectedSale = selectedSale || validSale;
+                if (selectedSale.reduceAmount < validSale.reduceAmount) {
+                    selectedSale = validSale;
+                }
+                return selectedSale;
+            }, null);
+            // 重新找以选择的活动，如果该活动已无效，则变成null
+            if (chosenSale) {
+                chosenSale = validSales.find(validSale => validSale.sale.id == chosenSale.sale.id);
+            }
+            // 默认活动是最佳活动
+            var defaultSale = bestSale;
+            // 优惠后总额优先数按需：选择的活动 -> 默认活动（最佳活动）-> 前一个活动总额
+            var actualTotal = chooseNone
+                ? preTotal
+                : chosenSale ? chosenSale.actualTotal : defaultSale ? defaultSale.actualTotal : preTotal;
+            var preTotal2 = preTotal;
+            preTotal = actualTotal;
+            return {
+                sales,
+                validSales,
+                unvalidSales,
+                bestSale,
+                defaultSale,
+                chosenSale,
+                preTotal: preTotal2,
+                actualTotal,
+                chooseNone,
+                type
+            };
+        });
+        // 最后的一个活动
+        var finalActivity = reduceActivities[reduceActivities.length - 1];
+        return Object.assign({}, cart, { activities: reduceActivities, 
+            // 使用最后一个活动的实际总额作为最终总额
+            actualTotal: preTotal });
+    };
+};
+/**
+ * 插件的定义
+ * @param type
+ */
+exports.plugin = (type) => {
+    return {
+        CONST,
+        actions,
+        reducer: reducer(type),
+        calculate: calculate(type)
+    };
+};
+
+
+/***/ }),
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -499,7 +912,7 @@ module.exports = emptyObject;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -568,7 +981,7 @@ module.exports = warning;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports) {
 
 var g;
@@ -595,7 +1008,7 @@ module.exports = g;
 
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -610,8 +1023,8 @@ module.exports = g;
 
 if (process.env.NODE_ENV !== 'production') {
   var invariant = __webpack_require__(4);
-  var warning = __webpack_require__(7);
-  var ReactPropTypesSecret = __webpack_require__(10);
+  var warning = __webpack_require__(8);
+  var ReactPropTypesSecret = __webpack_require__(11);
   var loggedTypeFailures = {};
 }
 
@@ -662,7 +1075,7 @@ module.exports = checkPropTypes;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -681,7 +1094,7 @@ module.exports = ReactPropTypesSecret;
 
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -709,7 +1122,7 @@ function warning(message) {
 }
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -781,10 +1194,119 @@ function isPlainObject(value) {
 
 
 /***/ }),
-/* 13 */,
-/* 14 */,
-/* 15 */,
-/* 16 */,
+/* 14 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * action定义
+ */
+const const_1 = __webpack_require__(15);
+function init_cart(data) {
+    return {
+        type: const_1.default.INIT_CART,
+        items: data
+    };
+}
+exports.init_cart = init_cart;
+function add(item) {
+    return Object.assign({ type: const_1.default.ADD }, item);
+}
+exports.add = add;
+function remove(item) {
+    return Object.assign({ type: const_1.default.REMOVE }, item);
+}
+exports.remove = remove;
+function update(item) {
+    return Object.assign({ type: const_1.default.UPDATE }, item);
+}
+exports.update = update;
+function checked({ goodsId, checked }) {
+    return {
+        type: const_1.default.CHECKED,
+        goodsId, checked
+    };
+}
+exports.checked = checked;
+function checkedAll(checked) {
+    return {
+        type: const_1.default.CHECKEDALL,
+        checked
+    };
+}
+exports.checkedAll = checkedAll;
+function empty() {
+    return {
+        type: const_1.default.EMPTY
+    };
+}
+exports.empty = empty;
+function removeChecked() {
+    return {
+        type: const_1.default.REMOVECHECKED
+    };
+}
+exports.removeChecked = removeChecked;
+function throwError(code) {
+    return {
+        type: const_1.default.UPDATE,
+        code
+    };
+}
+exports.throwError = throwError;
+
+
+/***/ }),
+/* 15 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * action的type常量定义
+ */
+const Actions = {
+    INIT_CART: 'CART_INIT',
+    ADD: 'CART_ADD',
+    REMOVE: 'CART_REMOVE',
+    UPDATE: 'CART_UPDATE',
+    SUBMIT: 'CART_SUBMIT',
+    ERROR: 'CART_ERROR',
+    CHECKED: 'CART_CHECKED',
+    CHECKEDALL: 'CART_CHECKEDALL',
+    EMPTY: 'CART_EMPTY',
+    REMOVECHECKED: 'CART_REMOVECHECKED',
+    CHOOSE_NONE: 'CART_CHOOSE_NONE'
+};
+exports.default = Actions;
+
+
+/***/ }),
+/* 16 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var filter = items => {
+    var result = items.filter(item => item.checked);
+    return result;
+};
+exports.filter = filter;
+exports.default = (cart) => {
+    // 总金额（没有任何优惠）
+    var grossTotal = filter(cart.items).reduce((total, item) => {
+        total += item.goods.price * item.quantity;
+        return total;
+    }, 0);
+    return Object.assign({}, cart, { grossTotal, actualTotal: grossTotal });
+};
+
+
+/***/ }),
 /* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -1517,7 +2039,7 @@ if (process.env.NODE_ENV !== 'production' && typeof isCrushed.name === 'string' 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return ActionTypes; });
 /* harmony export (immutable) */ __webpack_exports__["b"] = createStore;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_lodash_es_isPlainObject__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_lodash_es_isPlainObject__ = __webpack_require__(13);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_symbol_observable__ = __webpack_require__(66);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_symbol_observable___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_symbol_observable__);
 
@@ -1934,8 +2456,8 @@ function wrapMapToPropsFunc(mapToProps, methodName) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = verifyPlainObject;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_lodash_es_isPlainObject__ = __webpack_require__(12);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__warning__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_lodash_es_isPlainObject__ = __webpack_require__(13);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__warning__ = __webpack_require__(12);
 
 
 
@@ -1946,7 +2468,40 @@ function verifyPlainObject(value, displayName, methodName) {
 }
 
 /***/ }),
-/* 34 */,
+/* 34 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * 类目类型
+ * @export
+ * @enum {number}
+ */
+var CategoryType;
+(function (CategoryType) {
+    // 限于某个类目
+    CategoryType[CategoryType["CATEGORY"] = 1] = "CATEGORY";
+    // 限于某个商品
+    CategoryType[CategoryType["GOODS"] = 2] = "GOODS";
+    // 所有商品
+    CategoryType[CategoryType["ALL"] = 3] = "ALL";
+    // 活动类目
+    CategoryType[CategoryType["ACTIVITY_CATEGORY"] = 4] = "ACTIVITY_CATEGORY";
+})(CategoryType = exports.CategoryType || (exports.CategoryType = {}));
+/**
+ *
+ * 错误类型
+ * @export
+ * @enum {number}
+ */
+var ErrorType;
+(function (ErrorType) {
+})(ErrorType = exports.ErrorType || (exports.ErrorType = {}));
+
+
+/***/ }),
 /* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -2029,7 +2584,7 @@ if (process.env.NODE_ENV === 'production') {
 /*
  Modernizr 3.0.0pre (Custom Build) | MIT
 */
-var aa=__webpack_require__(2),l=__webpack_require__(17),B=__webpack_require__(3),C=__webpack_require__(1),ba=__webpack_require__(18),da=__webpack_require__(19),ea=__webpack_require__(20),fa=__webpack_require__(21),ia=__webpack_require__(22),D=__webpack_require__(6);
+var aa=__webpack_require__(2),l=__webpack_require__(17),B=__webpack_require__(3),C=__webpack_require__(1),ba=__webpack_require__(18),da=__webpack_require__(19),ea=__webpack_require__(20),fa=__webpack_require__(21),ia=__webpack_require__(22),D=__webpack_require__(7);
 function E(a){for(var b=arguments.length-1,c="Minified React error #"+a+"; visit http://facebook.github.io/react/docs/error-decoder.html?invariant\x3d"+a,d=0;d<b;d++)c+="\x26args[]\x3d"+encodeURIComponent(arguments[d+1]);b=Error(c+" for the full message or use the non-minified dev environment for full errors and additional helpful warnings.");b.name="Invariant Violation";b.framesToPop=1;throw b;}aa?void 0:E("227");
 var oa={children:!0,dangerouslySetInnerHTML:!0,defaultValue:!0,defaultChecked:!0,innerHTML:!0,suppressContentEditableWarning:!0,suppressHydrationWarning:!0,style:!0};function pa(a,b){return(a&b)===b}
 var ta={MUST_USE_PROPERTY:1,HAS_BOOLEAN_VALUE:4,HAS_NUMERIC_VALUE:8,HAS_POSITIVE_NUMERIC_VALUE:24,HAS_OVERLOADED_BOOLEAN_VALUE:32,HAS_STRING_BOOLEAN_VALUE:64,injectDOMPropertyConfig:function(a){var b=ta,c=a.Properties||{},d=a.DOMAttributeNamespaces||{},e=a.DOMAttributeNames||{};a=a.DOMMutationMethods||{};for(var f in c){ua.hasOwnProperty(f)?E("48",f):void 0;var g=f.toLowerCase(),h=c[f];g={attributeName:g,attributeNamespace:null,propertyName:f,mutationMethod:null,mustUseProperty:pa(h,b.MUST_USE_PROPERTY),
@@ -2262,7 +2817,7 @@ Z.injectIntoDevTools({findFiberByHostInstance:pb,bundleType:0,version:"16.2.0",r
  * LICENSE file in the root directory of this source tree.
  */
 
-var m=__webpack_require__(3),n=__webpack_require__(6),p=__webpack_require__(1),q="function"===typeof Symbol&&Symbol["for"],r=q?Symbol["for"]("react.element"):60103,t=q?Symbol["for"]("react.call"):60104,u=q?Symbol["for"]("react.return"):60105,v=q?Symbol["for"]("react.portal"):60106,w=q?Symbol["for"]("react.fragment"):60107,x="function"===typeof Symbol&&Symbol.iterator;
+var m=__webpack_require__(3),n=__webpack_require__(7),p=__webpack_require__(1),q="function"===typeof Symbol&&Symbol["for"],r=q?Symbol["for"]("react.element"):60103,t=q?Symbol["for"]("react.call"):60104,u=q?Symbol["for"]("react.return"):60105,v=q?Symbol["for"]("react.portal"):60106,w=q?Symbol["for"]("react.fragment"):60107,x="function"===typeof Symbol&&Symbol.iterator;
 function y(a){for(var b=arguments.length-1,e="Minified React error #"+a+"; visit http://facebook.github.io/react/docs/error-decoder.html?invariant\x3d"+a,c=0;c<b;c++)e+="\x26args[]\x3d"+encodeURIComponent(arguments[c+1]);b=Error(e+" for the full message or use the non-minified dev environment for full errors and additional helpful warnings.");b.name="Invariant Violation";b.framesToPop=1;throw b;}
 var z={isMounted:function(){return!1},enqueueForceUpdate:function(){},enqueueReplaceState:function(){},enqueueSetState:function(){}};function A(a,b,e){this.props=a;this.context=b;this.refs=n;this.updater=e||z}A.prototype.isReactComponent={};A.prototype.setState=function(a,b){"object"!==typeof a&&"function"!==typeof a&&null!=a?y("85"):void 0;this.updater.enqueueSetState(this,a,b,"setState")};A.prototype.forceUpdate=function(a){this.updater.enqueueForceUpdate(this,a,"forceUpdate")};
 function B(a,b,e){this.props=a;this.context=b;this.refs=n;this.updater=e||z}function C(){}C.prototype=A.prototype;var D=B.prototype=new C;D.constructor=B;m(D,A.prototype);D.isPureReactComponent=!0;function E(a,b,e){this.props=a;this.context=b;this.refs=n;this.updater=e||z}var F=E.prototype=new C;F.constructor=E;m(F,A.prototype);F.unstable_isAsyncReactComponent=!0;F.render=function(){return this.props.children};var G={current:null},H=Object.prototype.hasOwnProperty,I={key:!0,ref:!0,__self:!0,__source:!0};
@@ -2299,11 +2854,11 @@ if (process.env.NODE_ENV !== "production") {
 'use strict';
 
 var _assign = __webpack_require__(3);
-var emptyObject = __webpack_require__(6);
+var emptyObject = __webpack_require__(7);
 var invariant = __webpack_require__(4);
-var warning = __webpack_require__(7);
+var warning = __webpack_require__(8);
 var emptyFunction = __webpack_require__(1);
-var checkPropTypes = __webpack_require__(9);
+var checkPropTypes = __webpack_require__(10);
 
 // TODO: this is special because it gets imported during build.
 
@@ -3721,7 +4276,7 @@ if (process.env.NODE_ENV !== "production") {
 
 var React = __webpack_require__(2);
 var invariant = __webpack_require__(4);
-var warning = __webpack_require__(7);
+var warning = __webpack_require__(8);
 var ExecutionEnvironment = __webpack_require__(17);
 var _assign = __webpack_require__(3);
 var emptyFunction = __webpack_require__(1);
@@ -3730,8 +4285,8 @@ var getActiveElement = __webpack_require__(19);
 var shallowEqual = __webpack_require__(20);
 var containsNode = __webpack_require__(21);
 var focusNode = __webpack_require__(22);
-var emptyObject = __webpack_require__(6);
-var checkPropTypes = __webpack_require__(9);
+var emptyObject = __webpack_require__(7);
+var checkPropTypes = __webpack_require__(10);
 var hyphenateStyleName = __webpack_require__(44);
 var camelizeStyleName = __webpack_require__(46);
 
@@ -19398,7 +19953,7 @@ exports.default = () => {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_prop_types__ = __webpack_require__(24);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_prop_types___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_prop_types__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__utils_PropTypes__ = __webpack_require__(25);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__utils_warning__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__utils_warning__ = __webpack_require__(12);
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -19489,11 +20044,11 @@ function createProvider() {
 
 var emptyFunction = __webpack_require__(1);
 var invariant = __webpack_require__(4);
-var warning = __webpack_require__(7);
+var warning = __webpack_require__(8);
 var assign = __webpack_require__(3);
 
-var ReactPropTypesSecret = __webpack_require__(10);
-var checkPropTypes = __webpack_require__(9);
+var ReactPropTypesSecret = __webpack_require__(11);
+var checkPropTypes = __webpack_require__(10);
 
 module.exports = function(isValidElement, throwOnDirectAccess) {
   /* global Symbol */
@@ -20039,7 +20594,7 @@ module.exports = function(isValidElement, throwOnDirectAccess) {
 
 var emptyFunction = __webpack_require__(1);
 var invariant = __webpack_require__(4);
-var ReactPropTypesSecret = __webpack_require__(10);
+var ReactPropTypesSecret = __webpack_require__(11);
 
 module.exports = function() {
   function shim(props, propName, componentName, location, propFullName, secret) {
@@ -20567,7 +21122,7 @@ var freeGlobal = typeof global == 'object' && global && global.Object === Object
 
 /* harmony default export */ __webpack_exports__["a"] = (freeGlobal);
 
-/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(8)))
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(9)))
 
 /***/ }),
 /* 61 */
@@ -20765,7 +21320,7 @@ if (typeof self !== 'undefined') {
 
 var result = (0, _ponyfill2['default'])(root);
 exports['default'] = result;
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(8), __webpack_require__(68)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(9), __webpack_require__(68)(module)))
 
 /***/ }),
 /* 68 */
@@ -20831,7 +21386,7 @@ function symbolObservablePonyfill(root) {
 "use strict";
 /* WEBPACK VAR INJECTION */(function(process) {/* harmony export (immutable) */ __webpack_exports__["a"] = combineReducers;
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__createStore__ = __webpack_require__(28);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_lodash_es_isPlainObject__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_lodash_es_isPlainObject__ = __webpack_require__(13);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__utils_warning__ = __webpack_require__(30);
 
 
@@ -21273,7 +21828,7 @@ function finalPropsSelectorFactory(dispatch, _ref2) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = verifySubselectors;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utils_warning__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utils_warning__ = __webpack_require__(12);
 
 
 function verify(selector, methodName, displayName) {
@@ -21412,6 +21967,38 @@ var sales = [
     }
 }];
 exports.sales = sales;
+var extraSales = [
+// 满减，所有商品可用
+{
+    id: '1',
+    name: 'sale1',
+    type: __1.SaleType.THRESHOLD,
+    rule: {
+        threshold: 240,
+        amount: 10,
+        operator: __1.Operator.OPERATE_DISCOUNT
+    },
+    apply: {
+        categoryType: __1.CategoryType.ALL,
+        value: ''
+    }
+},
+// 满减，金额不够，不可用
+{
+    id: '2',
+    name: 'sale2',
+    type: __1.SaleType.THRESHOLD,
+    rule: {
+        threshold: 5,
+        amount: 10,
+        thresholdUnit: __1.ThresholdUnit.THRESHOLD_COUNT
+    },
+    apply: {
+        categoryType: __1.CategoryType.CATEGORY,
+        value: 'category1'
+    }
+}];
+exports.extraSales = extraSales;
 var vouchers = [
 // 满减，所有商品可用
 {
@@ -21442,10 +22029,247 @@ var vouchers = [
 exports.vouchers = vouchers;
 
 /***/ }),
-/* 78 */,
-/* 79 */,
-/* 80 */,
-/* 81 */,
+/* 78 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const const_1 = __webpack_require__(15);
+// 商品增删改
+// 计算出可用活动、选择的活动、总金额、实际支付金额
+exports.default = (state = {
+        items: [],
+        grossTotal: 0,
+        actualTotal: 0,
+        error: null
+    }, action) => {
+    var type = action.type;
+    switch (type) {
+        case const_1.default.INIT_CART:
+            return Object.assign({}, state, { items: action.items });
+        case const_1.default.ADD:
+        case const_1.default.UPDATE:
+            var existItem = state.items.find(item => item.goods.id == action.goods.id);
+            return Object.assign({}, state, { items: existItem
+                    ? state.items.map(item => {
+                        return item.goods.id == action.goods.id
+                            ? Object.assign({}, item, { goods: Object.assign({}, item.goods, { price: action.goods && action.goods.price ? action.goods.price : item.goods.price }), quantity: type == const_1.default.UPDATE ? action.quantity : item.quantity + action.quantity, categories: action.categories || item.categories }) : Object.assign({}, item);
+                    })
+                    : [
+                        ...state.items,
+                        { goods: action.goods, quantity: action.quantity, categories: action.categories, checked: true }
+                    ] });
+        case const_1.default.REMOVE:
+            return Object.assign({}, state, { items: state.items.filter(item => item.goods.id != action.goods.id) });
+        case const_1.default.CHECKED:
+            return Object.assign({}, state, { items: state.items.map(item => item.goods.id == action.goodsId
+                    ? Object.assign({}, item, { checked: action.checked }) : item) });
+        case const_1.default.CHECKEDALL:
+            return Object.assign({}, state, { items: state.items.map(item => (Object.assign({}, item, { checked: action.checked }))) });
+        case const_1.default.EMPTY:
+            return Object.assign({}, state, { items: [] });
+        case const_1.default.REMOVECHECKED:
+            return Object.assign({}, state, { items: state.items.filter(item => !item.checked) });
+        case const_1.default.ERROR:
+            return Object.assign({}, state, { error: action.code });
+        default:
+            return state;
+    }
+};
+
+
+/***/ }),
+/* 79 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const _1 = __webpack_require__(5);
+const calculate_1 = __webpack_require__(16);
+const sale_1 = __webpack_require__(6);
+const sale_2 = __webpack_require__(6);
+function default_1() {
+    return _1.createCustomPlugin("bonus", (cart) => {
+        var { activities, actualTotal, items } = cart;
+        items = calculate_1.filter(items);
+        var preTotal = actualTotal;
+        var bonusItems = [];
+        var reduceActivities = activities.map(activity => {
+            if (activity.type == "bonus") {
+                var sales = activity.sales;
+                for (const sale of sales) {
+                    var { bonusId, threshold, amount, operator = sale_1.Operator.OPERATE_FREE, thresholdUnit = sale_2.ThresholdUnit.THRESHOLD_COUNT } = sale.rule;
+                    var { validItems, unvalidItems, satisfy } = sale_2.satisfyThreshold(actualTotal, sale, items);
+                    if (satisfy) {
+                        bonusItems.push({
+                            refItems: validItems,
+                            bonusId,
+                            count: amount
+                        });
+                    }
+                }
+            }
+            return activity;
+        });
+        return Object.assign({}, cart, { activities: reduceActivities, actualTotal,
+            bonusItems });
+    });
+}
+exports.default = default_1;
+
+
+/***/ }),
+/* 80 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const _1 = __webpack_require__(5);
+function default_1() {
+    return _1.createCustomPlugin("shipFree", (cart) => {
+        var activities = cart.activities;
+        var preTotal = cart.actualTotal;
+        var actualTotal = cart.actualTotal;
+        var reduceActivities = activities.map(activity => {
+            if (activity.type == "shipFree") {
+                var sale = activity.sales[0];
+                if (sale) {
+                    actualTotal = preTotal >= sale.rule.threshold ? preTotal : preTotal + sale.rule.amount;
+                    actualTotal = Math.max(0, actualTotal);
+                    return Object.assign({}, activity, { preTotal,
+                        actualTotal });
+                }
+                else {
+                    return activity;
+                }
+            }
+            else {
+                return activity;
+            }
+        });
+        return Object.assign({}, cart, { activities: reduceActivities, actualTotal });
+    });
+}
+exports.default = default_1;
+
+
+/***/ }),
+/* 81 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+// import {GetCart, GetSales} from '../api'
+const index_1 = __webpack_require__(14);
+function isOk(result) {
+    return result.code == 200;
+}
+function fetchItems(ctx, api) {
+    return async (dispatch) => {
+        var result = await api.fetch(ctx);
+        if (isOk(result)) {
+            dispatch(index_1.init_cart(result.result));
+        }
+        else {
+            dispatch(index_1.throwError(result.code));
+        }
+    };
+}
+exports.fetchItems = fetchItems;
+/**
+ * redux中间件thunk定义
+ */
+function addItem(ctx, item, api) {
+    return async (dispatch) => {
+        var result = await api.add(ctx, item);
+        if (isOk(result)) {
+            dispatch(index_1.add(item));
+        }
+        else {
+            dispatch(index_1.throwError(result.code));
+        }
+    };
+}
+exports.addItem = addItem;
+function removeItem(ctx, item, api) {
+    return async (dispatch) => {
+        var result = await api.remove(ctx, item);
+        if (isOk(result)) {
+            dispatch(index_1.remove(item));
+        }
+        else {
+            dispatch(index_1.throwError(result.code));
+        }
+    };
+}
+exports.removeItem = removeItem;
+function updateItem(ctx, item, api) {
+    return async (dispatch) => {
+        var result = await api.update(ctx, item);
+        if (isOk(result)) {
+            dispatch(index_1.update(item));
+        }
+        else {
+            dispatch(index_1.throwError(result.code));
+        }
+    };
+}
+exports.updateItem = updateItem;
+function checkedItem(ctx, item, api) {
+    return async (dispatch) => {
+        var result = await api.checked(ctx, item);
+        if (isOk(result)) {
+            dispatch(index_1.checked(item));
+        }
+        else {
+            dispatch(index_1.throwError(result.code));
+        }
+    };
+}
+exports.checkedItem = checkedItem;
+function checkedAllItems(ctx, api, checked) {
+    return async (dispatch) => {
+        var result = await api.checkedAll(ctx, checked);
+        if (isOk(result)) {
+            dispatch(index_1.checkedAll(checked));
+        }
+        else {
+            dispatch(index_1.throwError(result.code));
+        }
+    };
+}
+exports.checkedAllItems = checkedAllItems;
+function removeCheckedItems(ctx, api) {
+    return async (dispatch) => {
+        var result = await api.removeChecked(ctx);
+        if (isOk(result)) {
+            dispatch(index_1.removeChecked());
+        }
+        else {
+            dispatch(index_1.throwError(result.code));
+        }
+    };
+}
+exports.removeCheckedItems = removeCheckedItems;
+function emptyItems(ctx, api) {
+    return async (dispatch) => {
+        var result = await api.empty(ctx);
+        if (isOk(result)) {
+            dispatch(index_1.empty());
+        }
+        else {
+            dispatch(index_1.throwError(result.code));
+        }
+    };
+}
+exports.emptyItems = emptyItems;
+
+
+/***/ }),
 /* 82 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -22106,7 +22930,7 @@ var objectKeys = Object.keys || function (obj) {
   return keys;
 };
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(8)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(9)))
 
 /***/ }),
 /* 84 */
@@ -22699,7 +23523,7 @@ function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(8), __webpack_require__(0)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(9), __webpack_require__(0)))
 
 /***/ }),
 /* 85 */
