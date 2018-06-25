@@ -1,48 +1,78 @@
 import * as React from "react";
 import { connect } from "react-redux";
-import { items, sales, vouchers } from "../../test/data/data";
-import * as util from "../../test/util";
+import { items, sales, vouchers, extraSales } from "../../test/data/data";
 import * as Cart from "../../";
 import { Provider } from "react-redux";
 import * as redux from "redux";
+const composeEnhancers = (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__;
+
 var activityPlugin = Cart.ActivityPlugin("activity");
 var voucherPlugin = Cart.ActivityPlugin("voucher");
-var shipFreePlugin = util.shipFreePlugin();
-var actions = activityPlugin.actions;
+var shipFreePlugin: Cart.SalePlugin<Cart.CartWithSaleFunc, Cart.extActions> = Cart.shipFreePlugin();
+var bonus: Cart.SalePlugin<Cart.CartWithSaleFunc, Cart.extActions> = Cart.bonusPlugin();
 
-var reducer = Cart.createReducers([activityPlugin, voucherPlugin, shipFreePlugin]);
-var store = redux.createStore(reducer);
+var reducer = Cart.createReducers([activityPlugin, voucherPlugin, shipFreePlugin, bonus]);
+var store = redux.createStore(reducer, composeEnhancers && composeEnhancers());
 interface Props extends Cart.CartWithSale {
   addItem: any;
   initSale: any;
   chooseSale: any;
   updateItem: any;
   updateSale: any;
+  checkedItem: any;
+  checkedAll: any;
+  empty: any;
+  removeChecked: any;
   [key: string]: any;
 }
 interface State {}
 class App extends React.Component<Props, State> {
   state = {};
   initSale() {
-    this.props.initSale(sales, "activity");
+    this.props.initSale([...sales, ...extraSales], "activity");
     this.props.initSale(vouchers, "voucher");
     this.props.initSale(
       [
         {
-          id: "shipFree",
-          name: "免邮",
+          id: "shipFreeId",
+          name: "shipFree",
           rule: {
-            threshold: 300,
-            amount: 6,
-            desc: "满300免邮"
+            threshold: 200,
+            amount: 6
           },
-          type: Cart.SaleType.CUSTOM
+          type: Cart.SaleType.CUSTOM,
+          apply: {
+            categoryType: null,
+            value: null
+          }
         }
       ],
-      "shipFree",
       "shipFree"
     );
+
+    this.props.initSale(
+      [
+        {
+          id: "bonusId",
+          name: "bonus",
+          rule: {
+            bonusId: "9",
+            threshold: 1,
+            amount: 1,
+            thresholdUnit: Cart.ThresholdUnit.THRESHOLD_COUNT,
+            operator: Cart.Operator.OPERATE_COUNT
+          },
+          type: Cart.SaleType.CUSTOM,
+          apply: {
+            categoryType: Cart.CategoryType.GOODS,
+            value: "3"
+          }
+        }
+      ],
+      "bonus"
+    );
   }
+
   render() {
     return (
       <div>
@@ -78,6 +108,20 @@ class App extends React.Component<Props, State> {
           }}
         >
           添加商品
+        </button>&nbsp;
+        <button
+          onClick={e => {
+            this.props.removeChecked();
+          }}
+        >
+          删除选中的商品
+        </button>&nbsp;
+        <button
+          onClick={e => {
+            this.props.empty();
+          }}
+        >
+          清空所有商品
         </button>
         <br />
         <br />
@@ -86,6 +130,9 @@ class App extends React.Component<Props, State> {
           <table cellPadding="5">
             <tbody>
               <tr>
+                <td>
+                  <input type="checkbox" onChange={e => this.props.checkedAll(e.target.checked)} />
+                </td>
                 <td>商品名</td>
                 <td>价格</td>
                 <td>数量</td>
@@ -94,6 +141,18 @@ class App extends React.Component<Props, State> {
               </tr>
               {this.props.items.map(item => (
                 <tr>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={item.checked}
+                      onChange={e =>
+                        this.props.checkedItem({
+                          goodsId: item.goods.id,
+                          checked: e.target.checked
+                        })
+                      }
+                    />
+                  </td>
                   <td>{item.goods.name}</td>
                   <td>
                     <input
@@ -142,6 +201,27 @@ class App extends React.Component<Props, State> {
         <div>
           优惠列表：
           {this.props.activities.map(activity => {
+            // 计算下一个优惠的活动
+            var nextCloseSaleValidTotal;
+            // 从不可用活动里面选出一个最接近的活动
+            var nextCloseSale = activity.unvalidSales.reduce((nextCloseSale, unvalidSale) => {
+              if (
+                (!nextCloseSale ||
+                  (nextCloseSale.sale.rule.threshold > unvalidSale.sale.rule.threshold &&
+                    unvalidSale.sale.rule.threshold > this.props.grossTotal)) &&
+                unvalidSale.sale.rule.amount >
+                  (activity.chosenSale || activity.bestSale || { reduceAmount: 0 }).reduceAmount
+              ) {
+                nextCloseSale = unvalidSale;
+              }
+              return nextCloseSale;
+            }, null);
+            // 下一个最接近活动的可用商品的总额
+            if (nextCloseSale) {
+              nextCloseSaleValidTotal = nextCloseSale.validItems.reduce((total, item) => {
+                return total + item.quantity * item.goods.price;
+              }, 0);
+            }
             return (
               <div>
                 <br />
@@ -163,7 +243,7 @@ class App extends React.Component<Props, State> {
                           value: ""
                         }
                       };
-                      this.props.initSale(activity.sales.concat(newSale), activity.type);
+                      this.props.initSale([...activity.sales, newSale], activity.type);
                     }}
                   >
                     添加优惠规则
@@ -184,8 +264,11 @@ class App extends React.Component<Props, State> {
                       var type =
                         sale.type == Cart.SaleType.ANY
                           ? "直减"
-                          : sale.type == Cart.SaleType.THRESHOLD ? "满减" : "自定义";
+                          : sale.type == Cart.SaleType.THRESHOLD
+                            ? "满减"
+                            : "自定义";
                       var validSale: Cart.ValidSale = activity.validSales.find(item => item.sale.id == sale.id);
+                      var unvalidSale = !validSale && activity.unvalidSales.find(item => item.sale.id == sale.id);
                       return (
                         <tr>
                           <td>{sale.name}</td>
@@ -219,7 +302,23 @@ class App extends React.Component<Props, State> {
                                   type="text"
                                   value={sale.rule.threshold}
                                   style={{ width: "50px" }}
-                                />减&nbsp;<input
+                                />
+                                <select
+                                  onChange={e => {
+                                    this.props.updateSale(activity.sales, activity.type, {
+                                      ...sale,
+                                      rule: {
+                                        ...sale.rule,
+                                        thresholdUnit: parseInt(e.target.value, 10)
+                                      }
+                                    });
+                                  }}
+                                  value={sale.rule.thresholdUnit || Cart.ThresholdUnit.THRESHOLD_PRICE}
+                                >
+                                  <option value={Cart.ThresholdUnit.THRESHOLD_COUNT}>个</option>
+                                  <option value={Cart.ThresholdUnit.THRESHOLD_PRICE}>元</option>
+                                </select>
+                                &nbsp;{activity.type == "bonus" ? "送" : "减"}&nbsp;<input
                                   onChange={e => {
                                     this.props.updateSale(activity.sales, activity.type, {
                                       ...sale,
@@ -230,6 +329,7 @@ class App extends React.Component<Props, State> {
                                   value={sale.rule.amount}
                                   style={{ width: "50px" }}
                                 />
+                                {sale.rule.operator == Cart.Operator.OPERATE_DISCOUNT ? "%" : "元"}
                               </span>
                             )}
                           </td>
@@ -277,7 +377,11 @@ class App extends React.Component<Props, State> {
                               </span>
                             ) : null}
                           </td>
-                          <td>{validSale ? validSale.validItems.map(item => item.goods.name).join(",") : null}</td>
+                          <td>
+                            {(validSale || unvalidSale || { validItems: [] as any }).validItems
+                              .map(item => item.goods.name)
+                              .join(",")}
+                          </td>
                           <td>
                             {validSale && validSale.validItems.length > 0 ? (
                               <button
@@ -294,6 +398,10 @@ class App extends React.Component<Props, State> {
                     })}
                   </tbody>
                 </table>
+                <br />
+                下一个更好优惠：{nextCloseSale
+                  ? nextCloseSale.sale.name + "，优惠金额：" + nextCloseSale.sale.rule.amount
+                  : "无"}
                 <br />
                 最佳活动：{activity.bestSale
                   ? activity.bestSale.sale.name + "，优惠金额：" + activity.bestSale.reduceAmount
@@ -315,6 +423,19 @@ class App extends React.Component<Props, State> {
             );
           })}
         </div>
+        <br />
+        买x送x优惠：{this.props.bonusItems
+          ? this.props.bonusItems.map(item => {
+              return (
+                <div>
+                  买商品:{item.refItems.map(refItem => refItem.goods.name).join(",")}，送{item.count}个商品id为:{
+                    item.bonusId
+                  }
+                </div>
+              );
+            })
+          : null}
+        <br />
         <br />
         <div>最终支付总额：{this.props.actualTotal}</div>
       </div>
@@ -341,6 +462,18 @@ var Container = connect(
       },
       chooseSale: (saleId, saleType) => {
         dispatch(activityPlugin.actions.choose_sale(saleId, saleType));
+      },
+      checkedItem: item => {
+        dispatch(Cart.actions.checked(item));
+      },
+      checkedAll: checked => {
+        dispatch(Cart.actions.checkedAll(checked));
+      },
+      empty: () => {
+        dispatch(Cart.actions.empty());
+      },
+      removeChecked: () => {
+        dispatch(Cart.actions.removeChecked());
       }
     };
   }

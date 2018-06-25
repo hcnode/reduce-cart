@@ -41,7 +41,17 @@ var items : Item[] = [
         quantity : 1,
         checked : false,
         categories : ['category1']
-    }
+    }/* ,
+    {
+        goods : {
+            id : '9',
+            name : 'item9',
+            price : 10
+        },
+        quantity : 1,
+        checked : false,
+        categories : ['category1']
+    } */
 ]
 var sales : Sale[] = [
     // 满减，所有商品可用
@@ -116,10 +126,10 @@ var sales : Sale[] = [
     }
 ];
 var extraSales : Sale[] = [
-    // 满减，所有商品可用
+    // 满数量打折
     {
-        id : '1',
-        name : 'sale1',
+        id : '6',
+        name : 'sale6',
         type : SaleType.THRESHOLD,
         rule : {
             threshold : 240,
@@ -131,10 +141,10 @@ var extraSales : Sale[] = [
             value : ''
         }
     },
-    // 满减，金额不够，不可用
+    // 满减数量减金额
     {
-        id : '2',
-        name : 'sale2',
+        id : '7',
+        name : 'sale7',
         type : SaleType.THRESHOLD,
         rule : {
             threshold : 5,

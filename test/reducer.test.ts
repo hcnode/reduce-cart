@@ -267,9 +267,9 @@ describe("reducer", () => {
     state = reducer(state, activityPlugin.actions.init_sale(extraSales, 'activity'));
     var activity = state.activities[0];
     activity.validSales.length.should.be.equal(1);
-    activity.validSales[0].sale.id.should.be.equal('1');
+    activity.validSales[0].sale.id.should.be.equal('6');
     activity.unvalidSales.length.should.be.equal(1);
-    activity.unvalidSales[0].sale.id.should.be.equal('2');
+    activity.unvalidSales[0].sale.id.should.be.equal('7');
     activity.validSales[0].should.be.equal(activity.bestSale);
     activity.validSales[0].validItems.length.should.be.equal(3);
     activity.validSales[0].unvalidItems.length.should.be.equal(0);

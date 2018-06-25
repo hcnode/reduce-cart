@@ -1,47 +1,35 @@
 import {
-  createReducers,
-  ActivityPlugin,
-  SaleType,
-  Sale,
-  ValidSale,
   CartWithSale,
-  CartWithSaleFunc,
-  CategoryType,
-  Item,
-  Cart,
-  SalePlugin,
-  actions,
-  CONST,
   createCustomPlugin,
-  extActions
 } from "../../";
-import * as redux from "redux";
 import { filter } from "../reducers/calculate";
-import { Operator } from "../plugins/sale";
-import { ThresholdUnit, matchApply, satisfyThreshold } from "../plugins/sale";
-
+import { satisfyThreshold } from "../plugins/sale";
+/**
+ * built-in赠品活动插件
+ */
 export default function() {
   return createCustomPlugin("bonus", (cart: CartWithSale) => {
     var { activities, actualTotal, items } = cart;
     items = filter(items);
-    var preTotal = actualTotal;
     var bonusItems = [];
     var reduceActivities = activities.map(activity => {
+      // 只影响赠品类型活动
       if (activity.type == "bonus") {
         var sales = activity.sales;
         for (const sale of sales) {
           var {
             bonusId,
-            threshold,
             amount,
-            operator = Operator.OPERATE_FREE,
-            thresholdUnit = ThresholdUnit.THRESHOLD_COUNT
           } = sale.rule;
-          var { validItems, unvalidItems, satisfy } = satisfyThreshold(actualTotal, sale, items);
+          // 当前购物车是否满足定义的赠品活动
+          var { validItems, satisfy } = satisfyThreshold(actualTotal, sale, items);
           if (satisfy) {
             bonusItems.push({
+              // 满足的购物车商品列表
               refItems: validItems,
+              // 赠品id
               bonusId,
+              // 赠品的数量
               count: amount
             });
           }
@@ -53,6 +41,7 @@ export default function() {
       ...cart,
       activities: reduceActivities,
       actualTotal,
+      // 赠品信息放在购物车的最外层对象
       bonusItems
     };
   });

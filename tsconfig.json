@@ -16,7 +16,6 @@
     "suppressExcessPropertyErrors": true,
     "suppressImplicitAnyIndexErrors": true,
     "sourceMap": true,
-    "declaration": true,
     "outDir": "./dist"
   },
   "compileOnSave": false,

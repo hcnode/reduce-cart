@@ -16,9 +16,7 @@
     "suppressExcessPropertyErrors": true,
     "suppressImplicitAnyIndexErrors": true,
     "sourceMap": true,
-    "declaration": true,
-    "jsx": "react",
-    "outDir": "./dist"
+    "jsx": "react"
   },
   "compileOnSave": false,
   "exclude": [

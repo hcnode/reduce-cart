@@ -1,21 +1,7 @@
 import {
-  createReducers,
-  ActivityPlugin,
-  SaleType,
-  Sale,
-  ValidSale,
   CartWithSale,
-  CartWithSaleFunc,
-  CategoryType,
-  Item,
-  Cart,
-  SalePlugin,
-  actions,
-  CONST,
   createCustomPlugin,
-  extActions
 } from "../../";
-import * as redux from "redux";
 export default function() {
   return createCustomPlugin("shipFree", (cart: CartWithSale) => {
     var activities = cart.activities;

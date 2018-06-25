@@ -1,5 +1,6 @@
 /**
- * 通用中间件定义
+ * built-in满减活动定义
+ * 标注@ignore表示春风购物车暂时没有使用这个功能
  */
 import { CategoryType, Item, Cart, SalePlugin, Actions } from "../interface";
 import { init_cart, add, remove, update, throwError } from "../actions/index";
@@ -7,34 +8,41 @@ import { Api } from "../interface";
 import * as redux from "redux";
 import { filter } from "../reducers/calculate";
 /**
- * 活动定义，可以是比如全场满减活动，优惠券等
+ * 活动对象接口
  *
  * @interface Sale
  */
 export interface Sale {
   id: string;
+
   name: string;
   /**
    * 直减还是满减
    */
   type: SaleType;
   /**
-   * 规则，满减的额度和减去的金额
+   * 规则
    *
    */
   rule: {
+    // 门槛
     threshold: number;
+    // 数量或者金额
     amount: number;
     desc?: string;
-    operator?: number;
-    thresholdUnit?: number;
+    // 折扣类型，减金额还是打折等
+    operator?: Operator;
+    // 门槛的单位，金额还是数量
+    thresholdUnit?: ThresholdUnit;
     bonusId? : string
   };
   /**
    * 应用的商品，限定某个类目还是所有商品
    */
   apply?: {
+    // 应用的类型，目录还是商品
     categoryType: CategoryType;
+    // 目录或者商品的id
     value: any;
   };
 }
@@ -85,16 +93,34 @@ export enum SaleType {
  * 折扣类型
  */
 export enum Operator {
+  /**
+   * 减金额
+   */
   OPERATE_PRICE = 1,
+  /**
+   * 减数量
+   */
   OPERATE_COUNT = 2,
+  /**
+   * 折扣
+   */
   OPERATE_DISCOUNT = 3,
+  /**
+   * 免费
+   */
   OPERATE_FREE = 4
 }
 /**
  * 门槛的单位
  */
 export enum ThresholdUnit {
+  /**
+   * 门槛是金额
+   */
   THRESHOLD_PRICE = 1,
+  /**
+   * 门槛是数量
+   */
   THRESHOLD_COUNT = 2
 }
 /**
@@ -159,10 +185,14 @@ export interface CartWithSale extends Cart {
   }[]
 }
 /**
- * 购物车接口函数
+ * 基于活动扩展的reducer类型
  */
 export type CartWithSaleFunc = redux.Reducer<CartWithSale>;
 
+/**
+ * api接口是否正常返回
+ * @param result 
+ */
 function isOk(result) {
   return result.code == 200;
 }
@@ -174,9 +204,15 @@ var CONST = {
   CHOOSE_SALE: "CART_CHOOSE_SALE",
   CHOOSE_NONE: "CART_CHOOSE_NONE"
 };
+/**
+ * 基于购物车的actions扩展
+ */
 export interface extActions extends Actions {
+  // 初始化活动
   init_sale: (data: Sale[], saleType: string) => redux.AnyAction;
+  // 选择活动
   choose_sale: (data: string, saleType: string) => redux.AnyAction;
+  // 不选择活动
   choose_none: (saleType: string) => redux.AnyAction;
 }
 /**
@@ -218,13 +254,20 @@ var actions: extActions = {
     };
   }
 };
+// 活动相关的api接口的redux的thunk中间件
 var thunk = {
+  // 初始化活动列表
   fetchSales: (ctx, api: Api, saleType) => {
     return async dispatch => {
+      // 获取所有活动列表
       var result = await api.fetch(ctx);
+      // 获取当前购物车设置过的活动信息
       var cartActivitiesResult = await api.getCartActivities(ctx);
       if (isOk(result)) {
+        // dispatch活动初始化action
         dispatch(actions.init_sale(result.result, saleType));
+        // 如果之前保存过选择的活动，自动初始化活动
+        // @ignore，所以数据是写死一个空数组
         var cartActivities = cartActivitiesResult.result;
         for (var activity of cartActivities) {
           if (activity.type == saleType && activity.chooseId) {
@@ -236,6 +279,10 @@ var thunk = {
       }
     };
   },
+  /**
+   * 选择一个活动
+   * @ignore
+   */
   chooseActivity: (ctx, api: Api, saleType, sale) => {
     return async dispatch => {
       var result = await api.choose(ctx, { type: saleType, chooseId: sale.id });
@@ -251,6 +298,10 @@ var thunk = {
       }
     };
   },
+  /**
+   * 不选择一个活动
+   * @ignore
+   */
   chooseNone: (ctx, api: Api, saleType) => {
     return async dispatch => {
       var result = await api.chooseNone(ctx, { type: saleType });
@@ -263,7 +314,8 @@ var thunk = {
   }
 };
 /**
- * 定义reducer
+ * reducer实现
+ * @param saleType 
  */
 var reducer = (saleType): CartWithSaleFunc => {
   return (state: CartWithSale, action: redux.AnyAction): CartWithSale => {
@@ -272,7 +324,7 @@ var reducer = (saleType): CartWithSaleFunc => {
       ...state,
       activities: state.activities || []
     };
-
+    // 如果不是当前的活动type则直接返回
     if (action.saleType != saleType) {
       return state;
     }
@@ -329,6 +381,7 @@ var reducer = (saleType): CartWithSaleFunc => {
           })
         };
         return result;
+      // 不选择活动
       case CONST.CHOOSE_NONE:
         var result = {
           ...state,
@@ -351,6 +404,11 @@ var reducer = (saleType): CartWithSaleFunc => {
     }
   };
 };
+/**
+ * 计算优惠后的金额
+ * @param preTotal 
+ * @param validSale 
+ */
 function calculateActualTotal(preTotal, validSale: ValidSale) {
   var {
     operator = Operator.OPERATE_PRICE,
@@ -359,29 +417,43 @@ function calculateActualTotal(preTotal, validSale: ValidSale) {
   } = validSale.sale.rule;
   var actualTotal = preTotal;
   var reduceAmount = 0;
-  var validItem = validSale.validItems.filter(item => item.belonged);
-  var validActualTotal = validItem.reduce((total, item) => {
+  var validItems = validSale.validItems//.filter(item => item.belonged);
+  // 在活动里面的商品的总额
+  var validActualTotal = validItems.reduce((total, item) => {
     return total + item.quantity * item.goods.price;
   }, 0);
   switch (operator) {
+    // 减少金额
     case Operator.OPERATE_PRICE:
       reduceAmount = amount;
       actualTotal = preTotal - amount;
       break;
+    // 打折
     case Operator.OPERATE_DISCOUNT:
       reduceAmount = validActualTotal * amount / 100;
       actualTotal = preTotal - reduceAmount;
       break;
+    // 减数量
+    case Operator.OPERATE_COUNT:
+      // TODO 
+      break;
+    case Operator.OPERATE_FREE:
+      // TODO 这个情况不太确定需求
+      break;
   }
   var subReduceAmountTotal = 0;
-  var validItems = validItem.map((item, i) => {
+  validItems = validItems.map((item, i) => {
     var subtotal = item.quantity * item.goods.price;
+    // 如果不是最后一个，则使用公式：优惠金额*(商品金额/实际总金额)
+    // 如果是最后一个，则使用公式：优惠金额-前面的小计总额
     var subReduceAmount =
-      validItem.length - 1 != i ? reduceAmount * (subtotal / validActualTotal) : reduceAmount - subReduceAmountTotal;
+      validItems.length - 1 != i ? reduceAmount * (subtotal / validActualTotal) : reduceAmount - subReduceAmountTotal;
     subReduceAmountTotal += subReduceAmount;
     return {
       ...item,
+      // 小计
       subtotal: subtotal - subReduceAmount,
+      // 单个商品优惠金额
       subReduceAmount
     };
   });
@@ -393,6 +465,10 @@ function calculateActualTotal(preTotal, validSale: ValidSale) {
     subReduceAmountTotal
   };
 }
+/**
+ * 是否匹配类目或者商品
+ * @param item 
+ */
 function matchApply(item: Item, { categoryType, value }) {
   return (
     // 匹配所有商品
@@ -403,26 +479,31 @@ function matchApply(item: Item, { categoryType, value }) {
     (item.categories || ([] as any)).indexOf(value) > -1
   );
 }
+/**
+ * 是否符合门槛
+ * @param preTotal 
+ * @param sale 
+ * @param items 
+ */
 function satisfyThreshold(preTotal, sale: Sale, items: Item[]) {
   var {
-    operator = Operator.OPERATE_PRICE,
     thresholdUnit = ThresholdUnit.THRESHOLD_PRICE,
-    amount,
     threshold
   } = sale.rule;
-  var type = sale.type;
+  // 没有门槛，比如全场直减优惠券
   var isNoThreshold = sale.type == SaleType.ANY;
-  var actualTotal = preTotal;
-  var reduceAmount = 0;
+  // 符合门槛的商品
   var validItems = [];
+  // 不符合门槛的商品
   var unvalidItems = [];
+  // 符合apply的商品总额和商品数量
   var validActualTotal = items.reduce(
     (total, item) => {
       var isMatch = matchApply(item, sale.apply);
       if (isMatch) {
         validItems.push({
           ...item,
-          belonged: true
+          // belonged: true
         });
         return {
           totalPrice: total.totalPrice + item.quantity * item.goods.price,
@@ -439,10 +520,15 @@ function satisfyThreshold(preTotal, sale: Sale, items: Item[]) {
     validItems,
     unvalidItems,
     satisfy:
+      // 存在符合的商品
       validItems.length > 0 &&
+      //没有门槛
       (isNoThreshold ||
+        // 如果门槛数数量限制
         (ThresholdUnit.THRESHOLD_COUNT == thresholdUnit
+          // 总数量 >= 门槛值
           ? validActualTotal.totalCount >= threshold
+          // 总金额大于 >= 门槛值
           : ThresholdUnit.THRESHOLD_PRICE == thresholdUnit ? validActualTotal.totalPrice >= threshold : true))
   };
 }
@@ -463,9 +549,6 @@ var calculate = (saleType): CartWithSaleFunc => {
           ...activity
         };
       var validAndNotSales: any[] = sales.map((sale: Sale) => {
-        var categoryType = sale.apply.categoryType;
-        var reduceAmount = sale.rule.amount;
-        var value = sale.apply.value;
         var { validItems, unvalidItems, satisfy } = satisfyThreshold(preTotal, sale, items);
 
         var result: any = {
@@ -511,12 +594,9 @@ var calculate = (saleType): CartWithSaleFunc => {
         type
       };
     });
-    // 最后的一个活动
-    var finalActivity = reduceActivities[reduceActivities.length - 1];
     return {
       ...cart,
       activities: reduceActivities,
-      // 使用最后一个活动的实际总额作为最终总额
       actualTotal: preTotal
     };
   };
